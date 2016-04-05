@@ -14,8 +14,10 @@ import scipy.io
 
 def makeSDPT3Model(P_data, target, verbose=False):
     '''
-    
+    Save a .mat file containing the information for an SDPT3 solve in Sedumi
+    format (see http://plato.asu.edu/ftp/usrguide.pdf )
     '''
+
     dims = P_data['dims']
     G_lin = 1.*P_data['G'][:dims['l'], :]
     h_lin = 1.*P_data['h'][:dims['l'], :]

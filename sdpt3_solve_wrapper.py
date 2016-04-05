@@ -5,7 +5,7 @@ import subprocess
 import shlex
 
 import sdpt3_writer as sw
-from result import make_result_dict
+import result as res
 
 
 def solve_with_SDPT3(P, matfile_target, output_target, discard_matfile = True):
@@ -16,7 +16,7 @@ def solve_with_SDPT3(P, matfile_target, output_target, discard_matfile = True):
       output_target: the absolute path we will save the output log message to.
       discard_matfile: if True, deletes the .mat file after the solve finishes.
     Output:
-        an instance of the SDPT3Result object.
+        A dictionary with solve result information.
     '''
     # Generating the .mat file
     P_data = P.cvxpy_get_data('CVXOPT')
@@ -37,14 +37,14 @@ def solve_with_SDPT3(P, matfile_target, output_target, discard_matfile = True):
     # Reading the log and producing the result
     with open(output_target, 'r') as myfile:
         msg=myfile.read()
-    result = make_result_dict(msg)
-    
+    result = res.make_result_dict(msg)
+
     # Cleanup
     if discard_matfile:
         print "now deleting {0}".format(matfile_target)
         os.remove(matfile_target)
     
     # Print a summary statement and return
-    print "\n" + make_result_summary(result_dict)
+    print "\n" + res.make_result_summary(result)
     return result
 
