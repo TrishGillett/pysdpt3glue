@@ -58,8 +58,8 @@ def makeSDPT3Model(P_data, target, verbose=False):
     c_star = zeros((1, num_sedumi_vars))
     c_star[0:nx] = c
 
-    A_star = zeros((ne + ni, num_sedumi_vars))
-    b_star = zeros((ne + ni, 1))
+    A_star = zeros((ne + ni + num_sdp_vars, num_sedumi_vars))
+    b_star = zeros((ne + ni + num_sdp_vars, 1))
 
     A_star[0:ne, 0:nx] = A
     b_star[0:ne] = b
@@ -69,17 +69,18 @@ def makeSDPT3Model(P_data, target, verbose=False):
     b_star[ne:ne + ni] = hl
 
     assert Gs.size[0] == num_sdp_vars
-    Gs_star = zeros((num_sdp_vars, num_sedumi_vars))
-    Gs_star[0:num_sdp_vars, 0:nx] = Gs
-    Gs_star[0:num_sdp_vars, nx+ni:] = eye(num_sdp_vars)
+    A_star = zeros((num_sdp_vars, num_sedumi_vars))
+    A_star[ne + ni:, 0:nx] = Gs
+    A_star[ne + ni:, nx+ni:] = eye(num_sdp_vars)
+    b_star[ne + ni:] = hs
 
 #==============================================================================
 #   SIMPLICATION STEP:
-#   If some ctr k of Gs_star*x = hs is actually just equating xi = xj
+#   If some ctr k of A_star*x = hs is actually just equating xi = xj
 #   for some i in the free vars, j in the sdp vars, we need to do the following:
-#     (1) for A_star, Gs_star, c, add column/element i to column/element j
-#     (2) for A_star, Gs_star, c, delete column/element i
-#     (3) for Gs_star, delete row k
+#     (1) for A_star, c, add column/element i to column/element j
+#     (2) for A_star, c, delete column/element i
+#     (3) for A_star, delete row k
 #     (4) adjust our counts for different variable/constraint types
 #   On the first pass we will do (1) and make lists of which rows/ctrs to eliminate.
 #   On a second pass we will do the rest.
@@ -92,56 +93,43 @@ def makeSDPT3Model(P_data, target, verbose=False):
     # G_star such that Gs_star[ctr_k, var_i] == -1 AND hs[ctr_k] == 0 AND the
     # only other non-zero element in the row is Gs_star[ctr_k, nx + ni + ctr_k] == 1
     for var_i in range(nx):
-        for ctr_k in range(num_sdp_vars):
+        for ctr_k in range(ne + ni, ne + ni + num_sdp_vars):
             delete = False
-            if Gs_star[ctr_k, var_i] == -1:
-                assert Gs_star[ctr_k, nx + ni + ctr_k] == 1 # Should be true by construction
-                ctr_copy = 1.*Gs_star[ctr_k, :]
+            if A_star[ctr_k, var_i] == -1:
+                assert A_star[ctr_k, nx + ni + ctr_k] == 1 # Should be true by construction
+                ctr_copy = 1.*A_star[ctr_k, :]
                 ctr_copy[0, var_i] = 0
                 ctr_copy[0, nx+ni+ctr_k] = 0
                 if hs[ctr_k] == 0 and sum(abs(ctr_copy)) == 0:
                     # We can eliminate var_i because it meets the criteria!
-                    Gs_star[:, nx+ni+ctr_k] += Gs_star[:, var_i]
                     A_star[:, nx+ni+ctr_k] += A_star[:, var_i]
                     c_star[nx+ni+ctr_k] += c_star[var_i]
-                    # We're going to delete this column, but let's zero it out to avoid confusion
-                    Gs_star[:, var_i] *= 0.
-                    A_star[:, var_i] *= 0.
-                    c_star[var_i] *= 0.
-                    # Make a note to delete the row and column that are now 0.
+                    # Flag row ctr_k and column var_i to not be kept
                     delete = True
             if not delete:
                 rows_to_keep += [ctr_k]
                 cols_to_keep += [var_i]
-    cols_to_keep += range(nx, num_sedumi_vars)
+    rows_to_keep = range(ne + ni) + rows_to_keep
+    cols_to_keep = cols_to_keep + range(nx, num_sedumi_vars)
 
 #==============================================================================
 #    SIMPLIFICATION STEP PART TWO: construct final matrices with only the rows/cols we want
 #==============================================================================
+    # new downsized problem
+    A_star = A_star[rows_to_keep, cols_to_keep]
+    b_star = b_star[rows_to_keep]
+    c_star = c_star[cols_to_keep]
+
+    # problem dimensions
     num_deleted_vars = (num_sedumi_vars - len(cols_to_keep))
-    new_nx = nx - num_deleted_vars
-
-    sedumi_A = zeros((ne + ni + rows_to_keep, new_nx + ni + num_sdp_vars))
-    sedumi_b = zeros((ne + ni + rows_to_keep, 1))
-
-    # linear eqs and ineqs from cvxopt problem
-    sedumi_A[:ne + ni, :] = A_star[:, cols_to_keep]
-    sedumi_b[:ne + ni, :] = b_star[:]
-
-    # sum_i(s_i^2) rows for the semidefinite constraints
-    sedumi_A[ne + ni:, :] = Gs_star[rows_to_keep, cols_to_keep]
-    sedumi_b[ne + ni:, :] = hs[rows_to_keep, :]
-    
-    # objective and dimensions
-    sedumi_c = c_star[cols_to_keep]
-    sedumi_K = {'f': new_nx, 'l': dims['l'], 's': 1.*dims['s'][0]}
+    sedumi_K = {'f': nx - num_deleted_vars, 'l': dims['l'], 's': 1.*dims['s'][0]}
 
 #    raise Warning("This is a max problem and Sedumi format handles min problems, so the objective function has been negated and you will need to negate the result of the solve to get back the actual opt val to the relaxation.")
 
-    sedumi_A = sparsify_tall_mat(sedumi_A)
+    A_star = sparsify_tall_mat(A_star)
     b_star = sparsify_tall_mat(b_star)
-    sedumi_c = sparsify_tall_mat(sedumi_c)
-    scipy.io.savemat(target, {'A': sedumi_A, 'b': sedumi_b, 'c': sedumi_c, 'K': sedumi_K})
+    c_star = sparsify_tall_mat(c_star)
+    scipy.io.savemat(target, {'A': A_star, 'b': b_star, 'c': c_star, 'K': sedumi_K})
     return target
 
 
