@@ -19,18 +19,18 @@ def makeSDPT3Model(P_data, target, verbose=False):
     '''
 
     dims = P_data['dims']
-    Gl = 1.*P_data['G'][:dims['l'], :]
-    hl = 1.*P_data['h'][:dims['l'], :]
-    Gs = 1.*P_data['G'][dims['l']:, :]
-    hs = 1.*P_data['h'][dims['l']:, :]
+    assert not dims['q'], "Sorry, at this time we can't handle SOC constraints!"
+    ni = dims['l']
+    G = 1.*P_data['G']
+    h = 1.*P_data['h']
+    Gl, Gs = G[:ni, :], G[ni:, :]
+    hl, hs = h[:ni, :], h[ni:, :]
     A = 1.*P_data['A']
     b = 1.*P_data['b']
     c = 1.*P_data['c']
 
-    assert not dims['q'], "Sorry, at this time we can't handle SOC constraints!"
-    nx = Gl.size[1]
-    ne = A.size[0]
-    ni = Gl.size[0]
+    nx = len(c)
+    ne = len(b)
 
 #==============================================================================
 #   EXPANSION STEP:
@@ -87,19 +87,12 @@ def makeSDPT3Model(P_data, target, verbose=False):
     # only other non-zero element in the row is Gs_star[ctr_k, nx + ni + ctr_k] == 1
     for var_i in range(nx):
         for ctr_k in range(ne + ni, ne + ni + num_sdp_vars):
-            delete = False
-            if A_star[ctr_k, var_i] == -1:
-                assert A_star[ctr_k, nx + ni + ctr_k] == 1 # Should be true by construction
-                ctr_copy = 1.*A_star[ctr_k, :]
-                ctr_copy[0, var_i] = 0
-                ctr_copy[0, nx+ni+ctr_k] = 0
-                if hs[ctr_k] == 0 and sum(abs(ctr_copy)) == 0:
-                    # We can eliminate var_i because it meets the criteria!
-                    A_star[:, nx+ni+ctr_k] += A_star[:, var_i]
-                    c_star[nx+ni+ctr_k] += c_star[var_i]
-                    # Flag row ctr_k and column var_i to not be kept
-                    delete = True
-            if not delete:
+            if equivalent_vars(A_star[ctr_k, :], b_star[ctr_k], var_i, nx + ni + ctr_k):
+                A_star[:, nx+ni+ctr_k] += A_star[:, var_i]
+                A_star[:, var_i] *= 0.
+                c_star[nx+ni+ctr_k] += c_star[var_i]
+                c_star[var_i] *= 0.
+            else:
                 rows_to_keep += [ctr_k]
                 cols_to_keep += [var_i]
     rows_to_keep = range(ne + ni) + rows_to_keep
@@ -125,6 +118,17 @@ def makeSDPT3Model(P_data, target, verbose=False):
     scipy.io.savemat(target, {'A': A_star, 'b': b_star, 'c': c_star, 'K': sedumi_K})
     return target
 
+
+def equivalent_vars(g, h, coli, colj):
+    if g[coli] != -g[colj] or h != 0:
+        return False
+    else:
+        g = 1.*g
+        g[coli] = 0
+        g[colj] = 0
+        if sum(abs(g)) > 0:
+            return False
+    return True
 
 
 def sparsify_tall_mat(M, block_height=1000):
