@@ -31,13 +31,6 @@ def makeSDPT3Model(P_data, target, verbose=False):
     nx = Gl.size[1]
     ne = A.size[0]
     ni = Gl.size[0]
-    print "\nSDP model with {0}x{0} variable matrix, {1} total variables, {2} eq ctrs, {3} ineq ctrs".format(dims['s'][0], nx, ne, ni)
-
-    if verbose:
-        print "\nSDP to Sedumi format transformation:"
-        print "{0} equality constraints in {1} variables".format(ne + ni, nx + ni)
-        print "the first {0} variables (slacks) are in the nonnegative cone".format(ni)
-        print "the remaining {0} variables form a matrix in the PSD cone".format(nx)
 
 #==============================================================================
 #   EXPANSION STEP:
