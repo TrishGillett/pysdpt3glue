@@ -12,22 +12,22 @@ from numpy import zeros, eye
 import scipy.io
 
 
-def makeSDPT3Model(P_data, target, verbose=False):
+def makeSDPT3Model(problem_data, target):
     '''
     Save a .mat file containing the information for an SDPT3 solve in Sedumi
     format (see http://plato.asu.edu/ftp/usrguide.pdf )
     '''
 
-    dims = P_data['dims']
+    dims = problem_data['dims']
     assert not dims['q'], "Sorry, at this time we can't handle SOC constraints!"
     ni = dims['l']
-    G = 1.*P_data['G']
-    h = 1.*P_data['h']
+    G = 1.*problem_data['G']
+    h = 1.*problem_data['h']
     Gl, Gs = G[:ni, :], G[ni:, :]
     hl, hs = h[:ni, :], h[ni:, :]
-    A = 1.*P_data['A']
-    b = 1.*P_data['b']
-    c = 1.*P_data['c']
+    A = 1.*problem_data['A']
+    b = 1.*problem_data['b']
+    c = 1.*problem_data['c']
 
     nx = len(c)
     ne = len(b)
@@ -47,7 +47,7 @@ def makeSDPT3Model(P_data, target, verbose=False):
 #==============================================================================
     num_sdp_vars = sum([s*s for s in dims['s']])
     num_sedumi_vars = nx + ni + num_sdp_vars
-    
+
     c_star = zeros((1, num_sedumi_vars))
     c_star[0:nx] = c
 
@@ -110,7 +110,10 @@ def makeSDPT3Model(P_data, target, verbose=False):
     num_deleted_vars = (num_sedumi_vars - len(cols_to_keep))
     sedumi_K = {'f': nx - num_deleted_vars, 'l': dims['l'], 's': 1.*dims['s'][0]}
 
-#    raise Warning("This is a max problem and Sedumi format handles min problems, so the objective function has been negated and you will need to negate the result of the solve to get back the actual opt val to the relaxation.")
+#    raise Warning("This is a max problem and Sedumi format handles min problems, "
+#        "so the objective function has been negated and you will need to "
+#        "negate the result of the solve to get back the actual opt val to the "
+#        "relaxation.")
 
     A_star = sparsify_tall_mat(A_star)
     b_star = sparsify_tall_mat(b_star)
@@ -119,13 +122,17 @@ def makeSDPT3Model(P_data, target, verbose=False):
     return target
 
 
-def equivalent_vars(g, h, coli, colj):
-    if g[coli] != -g[colj] or h != 0:
+def equivalent_vars(g, h, i, j):
+    '''
+    Tests if the given constraint gx = h is in fact equivalent to the constraint
+    x_i = x_j
+    '''
+    if g[i] != -g[j] or h != 0:
         return False
     else:
         g = 1.*g
-        g[coli] = 0
-        g[colj] = 0
+        g[i] = 0
+        g[j] = 0
         if sum(abs(g)) > 0:
             return False
     return True
@@ -133,7 +140,7 @@ def equivalent_vars(g, h, coli, colj):
 
 def sparsify_tall_mat(M, block_height=1000):
     '''
-    
+    Returns a sparse matrix in scipy.sparse.coo_matrix form which is equivalent to M
     '''
     i = 0
     spmat_collector = []
@@ -142,4 +149,4 @@ def sparsify_tall_mat(M, block_height=1000):
         spmat_collector += [scipy.sparse.coo_matrix(curr_block.astype('d'))]
         i += 1
     return scipy.sparse.construct.vstack(spmat_collector)
-        
+
