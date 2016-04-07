@@ -5,32 +5,55 @@ Created on Thu Mar 27 16:43:25 2014
 @author: Trish
 
 
-Functions which generate .mat files for SDPT3 solves
+Functions which express problems in Sedumi format and export them as .mat files
+for Matlab
 """
 
 from numpy import zeros, eye
 import scipy.io
 
 
-def makeSDPT3Model(problem_data, target):
+
+def write_sedumi_model(problem_data, target):
     '''
-    Save a .mat file containing the information for an SDPT3 solve in Sedumi
-    format (see http://plato.asu.edu/ftp/usrguide.pdf )
+    Input:
+        problem_data: As produced by applying get_problem_data['CVXOPT'] to a
+        cvxpy problem.
+    Returns: (None)
+    Effect:
+        Saves a .mat file containing the A, b, c, K that define the problem
+        in Sedumi format (see http://plato.asu.edu/ftp/usrguide.pdf )
     '''
 
+#    raise Warning("This is a max problem and Sedumi format handles min problems, "
+#        "so the objective function has been negated and you will need to "
+#        "negate the result of the solve to get back the actual opt val to the "
+#        "relaxation.")
+
+    A, b, c, K = make_sedumi_format_problem(problem_data)
+    A = sparsify_tall_mat(A)
+    b = sparsify_tall_mat(b)
+    c = sparsify_tall_mat(c)
+    scipy.io.savemat(target, {'A': A, 'b': b, 'c': c, 'K': K})
+    return target
+
+
+
+def make_sedumi_format_problem(problem_data):
+    '''
+    Input:
+        problem_data: As produced by applying get_problem_data['CVXOPT'] to a
+        cvxpy problem.
+    Returns:
+        A, b, c, K: Data defining an equivalent problem in Sedumi format.
+    '''
     dims = problem_data['dims']
     assert not dims['q'], "Sorry, at this time we can't handle SOC constraints!"
+    
+    nx = len(problem_data['c'])
     ni = dims['l']
-    G = 1.*problem_data['G']
-    h = 1.*problem_data['h']
-    Gl, Gs = G[:ni, :], G[ni:, :]
-    hl, hs = h[:ni, :], h[ni:, :]
-    A = 1.*problem_data['A']
-    b = 1.*problem_data['b']
-    c = 1.*problem_data['c']
-
-    nx = len(c)
-    ne = len(b)
+    ne = len(problem_data['b'])
+    num_sdp_vars = sum([s*s for s in dims['s']])
 
 #==============================================================================
 #   EXPANSION STEP:
@@ -45,27 +68,25 @@ def makeSDPT3Model(problem_data, target):
 #     Gs_star= [ Gs |  0  |  I ] (num_sdp_vars) => sets the exp in the SDP element
 #               (nx) (ni)(num_sdp_vars)          equal to the var representing it
 #==============================================================================
-    num_sdp_vars = sum([s*s for s in dims['s']])
     num_sedumi_vars = nx + ni + num_sdp_vars
 
     c_star = zeros((1, num_sedumi_vars))
-    c_star[0:nx] = c
+    c_star[0:nx] = 1.*problem_data['c']
 
     A_star = zeros((ne + ni + num_sdp_vars, num_sedumi_vars))
     b_star = zeros((ne + ni + num_sdp_vars, 1))
 
-    A_star[0:ne, 0:nx] = A
-    b_star[0:ne] = b
+    A_star[0:ne, 0:nx] = 1.*problem_data['A']
+    b_star[0:ne] = 1.*problem_data['b']
 
-    A_star[ne:ne + ni, 0:nx] = Gl
+    A_star[ne:ne + ni, 0:nx] = 1.*problem_data['G'][:ni, :] # = Gl
     A_star[ne:ne + ni, nx:nx + ni] = eye(ni)
-    b_star[ne:ne + ni] = hl
+    b_star[ne:ne + ni] = 1.*problem_data['h'][:ni, :] # = hl
 
-    assert Gs.size[0] == num_sdp_vars
     A_star = zeros((num_sdp_vars, num_sedumi_vars))
-    A_star[ne + ni:, 0:nx] = Gs
+    A_star[ne + ni:, 0:nx] = 1.*problem_data['G'][ni:, :] # = Gs
     A_star[ne + ni:, nx+ni:] = eye(num_sdp_vars)
-    b_star[ne + ni:] = hs
+    b_star[ne + ni:] = 1.*problem_data['h'][ni:, :] # = hs
 
 #==============================================================================
 #   SIMPLICATION STEP:
@@ -108,18 +129,10 @@ def makeSDPT3Model(problem_data, target):
 
     # problem dimensions
     num_deleted_vars = (num_sedumi_vars - len(cols_to_keep))
-    sedumi_K = {'f': nx - num_deleted_vars, 'l': dims['l'], 's': 1.*dims['s'][0]}
+    K = {'f': nx - num_deleted_vars, 'l': dims['l'], 's': dims['s']}
+    return A_star, b_star, c_star, K
 
-#    raise Warning("This is a max problem and Sedumi format handles min problems, "
-#        "so the objective function has been negated and you will need to "
-#        "negate the result of the solve to get back the actual opt val to the "
-#        "relaxation.")
 
-    A_star = sparsify_tall_mat(A_star)
-    b_star = sparsify_tall_mat(b_star)
-    c_star = sparsify_tall_mat(c_star)
-    scipy.io.savemat(target, {'A': A_star, 'b': b_star, 'c': c_star, 'K': sedumi_K})
-    return target
 
 
 def equivalent_vars(g, h, i, j):

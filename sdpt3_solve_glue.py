@@ -23,7 +23,7 @@ def solve_with_SDPT3(P, matfile_target, output_target, discard_matfile = True):
     '''
     # Generating the .mat file
     P_data = P.get_problem_data('CVXOPT')
-    sw.makeSDPT3Model(P_data, matfile_target)
+    sw.write_sedumi_model(P_data, matfile_target)
     run_command = "matlab -r \"SDPT3solve('{0}')\"".format(matfile_target)
     msg = run_matlab_get_output(run_command, output_target)
     
