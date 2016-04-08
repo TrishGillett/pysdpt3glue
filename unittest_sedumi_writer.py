@@ -41,6 +41,7 @@ class TestSedumiSimplification(unittest.TestCase):
                                                    self.c,
                                                    self.K1,
                                                    allow_nonzero_b=False)
+#        print A, b, c, K
         assert offset == 0
         assert K['f'] == 0
         assert K['l'] == 1
@@ -61,6 +62,7 @@ class TestSedumiSimplification(unittest.TestCase):
                                                    self.c,
                                                    self.K2,
                                                    allow_nonzero_b=False)
+#        print A, b, c, K
         assert offset == 0
         assert K['f'] == 3
         assert K['l'] == self.K2['l']

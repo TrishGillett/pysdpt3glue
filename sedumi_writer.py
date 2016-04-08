@@ -130,21 +130,13 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
 #
 #   SIMPLIFICATION PART ONE: Remove dependence on some cols and mark them for removal.
 #==============================================================================
-    rows_to_keep = []            # construct this additively
-    cols_to_keep = range(n_vars) # construct this subtractively
-    n_deleted_f = 0
-    n_deleted_l = 0
     offset = 0
     # Given var_i which is a free variable, figure out if there is a row k of
     # G_star such that Gs_star[ctr_k, var_i] == -1 AND hs[ctr_k] == 0 AND the
     # only other non-zero element in the row is Gs_star[ctr_k, nx + ni + ctr_k] == 1
     for ctr_k in range(n_ctr):
         i, j = check_eliminatibility(A[ctr_k, :], b[ctr_k, 0], n_elig=n_free, allow_nonzero_b=allow_nonzero_b)
-        if i is not None and c[0, i] != 0 and b[ctr_k, 0]:
-            # This case involves shifting the objective by a constant and we
-            # need to decide how to handle that, so for now just not doing anything.
-            rows_to_keep += [ctr_k]
-        elif i is not None:
+        if i is not None:
             # Akixi (optionally + Akjxj) = bk case, eliminate xi using xi = (Akj/Aki) - (bk/Aki)*x_j
             aki = A[ctr_k, i]
             bk = b[ctr_k, 0]
@@ -162,17 +154,13 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
             # zero out the coefficients of var i to make sure it isn't chosen for elimination again
             A[:, i] *= 0.
             c[0, i] *= 0.
-            cols_to_keep.remove(i)
-            n_deleted_f += 1
-        else:
-            rows_to_keep += [ctr_k]
 
-    # As a final step, see if there are any free or nonnegative variables that
-    # aren't involved in ctrs or the objective
-    index = 0
-    while index < len(cols_to_keep):
-        vars_fl = n_free + K['l']
-        col = cols_to_keep[index]
+    # To wrap up, list all the variables which are still nontrivial to the model
+    n_deleted_f = 0
+    n_deleted_l = 0
+    cols_to_keep = []
+    vars_fl = n_free + K['l']
+    for col in range(n_vars):
         # free vars not in constraints must have 0 coeff in obj, else unbounded.
         # nonneg vars not in constraints must have >=0 coeff in obj, else unbounded.
         # if a var makes the probblem unbounded, we'll leave it alone and let
@@ -180,24 +168,23 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
         free_and_deletable = col < n_free and c[0, col] == 0
         nneg_and_deletable = col >= n_free and col < vars_fl and c[0, col] >= 0
         if free_and_deletable and not abs(A[:, col]).any():
-            cols_to_keep.pop(index)
             n_deleted_f += 1
+            pass
         elif nneg_and_deletable and not abs(A[:, col]).any():
-            cols_to_keep.pop(index)
             n_deleted_l += 1
+            pass
         else:
-            index += 1
+            cols_to_keep.append(col)
 
     # or any ctrs that are trivial (0x = 0).  A ctr of 0x = b would make the
     # problem infeasible, but in that case we'll leave it in so the user finds
     # it when they solve.
-    index = 0
-    while index < len(rows_to_keep):
-        row = rows_to_keep[index]
-        if not abs(A[row, :]).any() and b[row, 0] == 0:
-            rows_to_keep.pop(index)
+    rows_to_keep = []
+    for row in range(n_ctr):
+        if b[row, 0] == 0 and not abs(A[row, :]).any():
+            pass
         else:
-            index += 1
+            rows_to_keep.append(row)
 
 #==============================================================================
 #    SIMPLIFICATION STEP PART TWO: construct final matrices with only the rows/cols we want
