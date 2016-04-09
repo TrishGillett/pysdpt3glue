@@ -4,39 +4,34 @@ import os
 import subprocess
 import shlex
 
-import sdpt3_writer as sw
+import sedumi_writer as sw
 import result as res
 
 class MatlabCallError(Exception):
     pass
 
 
-def solve_with_SDPT3(P, matfile_target, output_target, discard_matfile = True):
+def matlab_solve(matfile_target, output_target, discard_matfile = True):
     '''
+    The .mat is loaded into matlab and the problem is solved with SDPT3.
     Inputs:
-      P: a cvxpy problem
-      matfile_target: the absolute path we will save the .mat file to.
-      output_target: the absolute path we will save the output log message to.
+      matfile_target: the path to the .mat file containing the Sedumi format problem data.
+      output_target: the path we will save the output log message to.
       discard_matfile: if True, deletes the .mat file after the solve finishes.
     Output:
         A dictionary with solve result information.
     '''
     # Generating the .mat file
-    P_data = P.get_problem_data('CVXOPT')
-    sw.write_sedumi_model(P_data, matfile_target)
     run_command = "matlab -r \"SDPT3solve('{0}')\"".format(matfile_target)
     msg = run_matlab_get_output(run_command, output_target)
     
-    result = res.make_result_dict(msg)
-
     # Cleanup
     if discard_matfile:
         print "now deleting {0}".format(matfile_target)
         os.remove(matfile_target)
     
-    # Print a summary statement and return
-    print "\n" + res.make_result_summary(result)
-    return result
+    return msg
+
 
 
 def run_matlab_get_output(run_command, output_target):

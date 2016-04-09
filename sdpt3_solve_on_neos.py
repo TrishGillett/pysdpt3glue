@@ -8,21 +8,23 @@ type via XML-RPC, something went wrong.
 With gratitude to Estela Alvarez (github.com/supita) who gave a demo of
 webscraping at a Pyladies meeting.
 """
-
+import os
 import sys
 import contextlib
 from time import sleep
 
 from selenium import webdriver
 
-def submit_and_get_id_pwd(matfilepath):
+
+def neos_solve(matfile_target, output_target=None, discard_matfile=True):
     '''
     Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
-    Returns the job ID and password which NEOS assigns to the job.
+    Returns the solve result message from NEOS.
+    If write_output_to, has the side effect of writing the message to this file.
     '''
     try:
         # any backslashes need to be doubly escaped for the web form
-        matfilepath = matfilepath.replace('\\', '\\\\')
+        matfile_target = matfile_target.replace('\\', '\\\\')
 
         with contextlib.closing(webdriver.Firefox()) as browser:
             browser.get(
@@ -31,7 +33,7 @@ def submit_and_get_id_pwd(matfilepath):
             # Find the .mat upload box and input the path to ours
             file_upload_element = browser.find_element_by_name("field.2")
             file_upload_element.clear()
-            file_upload_element.send_keys(matfilepath)
+            file_upload_element.send_keys(matfile_target)
 
             # Find the submit button and click it
             submit_xpath = '//input[@type="submit"]'
@@ -46,9 +48,20 @@ def submit_and_get_id_pwd(matfilepath):
         # If that fails for any reason, we ask the user to submit the problem
         # manually and copy-paste the lines giving the id and password.
         browser.close()
-        jobid, pwd = ask_user_to_submit(matfilepath)
+        jobid, pwd = ask_user_to_submit(matfile_target)
 
-    return jobid, pwd
+    neos_int = NeosInterface()
+    msg = neos_int.track_and_return(jobid, pwd)
+    if output_target:
+        with open(output_target, 'w') as f:
+            f.write(msg)
+
+    # Cleanup
+    if discard_matfile:
+        print "now deleting {0}".format(matfile_target)
+        os.remove(matfile_target)
+
+    return msg
 
 
 def extract_id_pwd(source):
