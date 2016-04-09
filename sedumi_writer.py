@@ -12,6 +12,7 @@ for Matlab
 import numpy as np
 import scipy.io
 
+from cvxopt import matrix as cvxmat
 
 
 def write_sedumi_model(problem_data, target):
@@ -39,6 +40,22 @@ def write_sedumi_model(problem_data, target):
     return target
 
 
+def problem_data_prep(problem_data):
+    '''
+    'Touch up' the problem data in the following ways:
+      - Make sure the matrix elements aren't integers
+      - Make sure they're dense matrices rather than sparse ones, otherwise
+        there seem to be difficulties constructing block matrices
+      - Transpose c to be a row vector, which matches the organization of A, b, G, h
+        (rows are for constraints, columns are for variables)
+    '''
+    problem_data['A'] = cvxmat(1.*problem_data['A'])
+    problem_data['b'] = cvxmat(1.*problem_data['b'])
+    problem_data['G'] = cvxmat(1.*problem_data['G'])
+    problem_data['h'] = cvxmat(1.*problem_data['h'])
+    problem_data['c'] = cvxmat(1.*problem_data['c']).T
+    return problem_data
+
 
 def make_sedumi_format_problem(problem_data):
     '''
@@ -48,6 +65,7 @@ def make_sedumi_format_problem(problem_data):
     Returns:
         A, b, c, K: Data defining an equivalent problem in Sedumi format.
     '''
+    problem_data = problem_data_prep(problem_data)
     dims = problem_data['dims']
     assert not dims['q'], "Sorry, at this time we can't handle SOC constraints!"
 
@@ -72,22 +90,24 @@ def make_sedumi_format_problem(problem_data):
     num_sedumi_vars = nx + ni + num_sdp_vars
 
     c_star = np.zeros((1, num_sedumi_vars))
-    c_star[0:nx] = 1.*problem_data['c']
+    c_star[0, 0:nx] = problem_data['c']
 
     A_star = np.zeros((ne + ni + num_sdp_vars, num_sedumi_vars))
     b_star = np.zeros((ne + ni + num_sdp_vars, 1))
 
-    A_star[0:ne, 0:nx] = 1.*problem_data['A']
-    b_star[0:ne] = 1.*problem_data['b']
+    # Fill in blocks for Ax = b constraints
+    A_star[0:ne, 0:nx] = problem_data['A']
+    b_star[0:ne] = problem_data['b']
 
-    A_star[ne:ne + ni, 0:nx] = 1.*problem_data['G'][:ni, :] # = Gl
+    # Fill in blocks for Gx + s = h
+    A_star[ne:ne + ni, 0:nx] = problem_data['G'][:ni, :] # = Gl
     A_star[ne:ne + ni, nx:nx + ni] = np.eye(ni)
-    b_star[ne:ne + ni] = 1.*problem_data['h'][:ni, :] # = hl
+    b_star[ne:ne + ni] = problem_data['h'][:ni, :] # = hl
 
-    A_star = np.zeros((num_sdp_vars, num_sedumi_vars))
-    A_star[ne + ni:, 0:nx] = 1.*problem_data['G'][ni:, :] # = Gs
+    # Fill out blocks defining h - Gs = vec(Y), where Y is the PSD matrix
+    A_star[ne + ni:, 0:nx] = problem_data['G'][ni:, :] # = Gs
     A_star[ne + ni:, nx+ni:] = np.eye(num_sdp_vars)
-    b_star[ne + ni:] = 1.*problem_data['h'][ni:, :] # = hs
+    b_star[ne + ni:] = problem_data['h'][ni:, :] # = hs
 
     K = {'f': nx, 'l': dims['l'], 's': dims['s']}
     A_star, b_star, c_star, K, obj_cst = simplify_sedumi_model(A_star,
@@ -135,7 +155,10 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
     # G_star such that Gs_star[ctr_k, var_i] == -1 AND hs[ctr_k] == 0 AND the
     # only other non-zero element in the row is Gs_star[ctr_k, nx + ni + ctr_k] == 1
     for ctr_k in range(n_ctr):
-        i, j = check_eliminatibility(A[ctr_k, :], b[ctr_k, 0], n_elig=n_free, allow_nonzero_b=allow_nonzero_b)
+        i, j = check_eliminatibility(A[ctr_k, :],
+                                     b[ctr_k, 0],
+                                     n_elig=n_free,
+                                     allow_nonzero_b=allow_nonzero_b)
         if i is not None:
             # Akixi (optionally + Akjxj) = bk case, eliminate xi using xi = (Akj/Aki) - (bk/Aki)*x_j
             aki = A[ctr_k, i]
@@ -169,10 +192,8 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
         nneg_and_deletable = col >= n_free and col < vars_fl and c[0, col] >= 0
         if free_and_deletable and not abs(A[:, col]).any():
             n_deleted_f += 1
-            pass
         elif nneg_and_deletable and not abs(A[:, col]).any():
             n_deleted_l += 1
-            pass
         else:
             cols_to_keep.append(col)
 
@@ -212,7 +233,7 @@ def check_eliminatibility(g, h, n_elig=None, allow_nonzero_b=False):
         i, j         if the constraint fits pattern 2
         None, None   otherwise
     '''
-    n = g.shape[1]
+    n = len(g)
 
     if n_elig is None:
         n_elig = n
@@ -221,14 +242,14 @@ def check_eliminatibility(g, h, n_elig=None, allow_nonzero_b=False):
         return None, None
 
     for i in range(n_elig):
-        if g[0, i] != 0:
+        if g[i] != 0:
             j = i+1
-            while j < n and g[0, j] == 0:
+            while j < n and g[j] == 0:
                 j += 1
             # having stopped, see which we have found:
             if j == n:
                 return i, None # the end of the row
-            elif not abs(g[0, j+1:]).any():
+            elif not abs(g[j+1:]).any():
                 return i, j # the second of exactly two nonzero coefficients
             else:
                 return None, None # the second of three or more nonzero coefficients
