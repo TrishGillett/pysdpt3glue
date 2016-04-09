@@ -10,7 +10,7 @@ from numpy import zeros
 
 
 def make_result_dict(msg):
-    assert can_use_msg(msg), "Stopping, the message is not properly formed."
+    assert can_use_msg(msg), "Stopping, the message is not properly formed: " + msg
     result_dict = extract_prop_dict(msg)
     result_dict['X'] = extract_X(msg)
     result_dict['status_verb'] =  get_verb_status(result_dict['status_num'])

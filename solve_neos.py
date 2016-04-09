@@ -58,7 +58,6 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
 
     # Cleanup
     if discard_matfile:
-        print "now deleting {0}".format(matfile_target)
         os.remove(matfile_target)
 
     return msg
