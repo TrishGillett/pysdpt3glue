@@ -15,7 +15,7 @@ import scipy.io
 from cvxopt import matrix as cvxmat
 
 
-def write_sedumi_model(problem_data, target):
+def write_sedumi_model(problem_data, target, simplify=True):
     '''
     Input:
         problem_data: As produced by applying get_problem_data['CVXOPT'] to a
@@ -31,7 +31,7 @@ def write_sedumi_model(problem_data, target):
 #        "negate the result of the solve to get back the actual opt val to the "
 #        "relaxation.")
 
-    A, b, c, K, offset = make_sedumi_format_problem(problem_data)
+    A, b, c, K, offset = make_sedumi_format_problem(problem_data, simplify=simplify)
     assert offset == 0
     A = sparsify_tall_mat(A)
     b = sparsify_tall_mat(b)
@@ -57,7 +57,7 @@ def problem_data_prep(problem_data):
     return problem_data
 
 
-def make_sedumi_format_problem(problem_data):
+def make_sedumi_format_problem(problem_data, simplify=True):
     '''
     Input:
         problem_data: As produced by applying get_problem_data['CVXOPT'] to a
@@ -110,11 +110,12 @@ def make_sedumi_format_problem(problem_data):
     b_star[ne + ni:] = problem_data['h'][ni:, :] # = hs
 
     K = {'f': nx, 'l': dims['l'], 's': dims['s']}
-    A_star, b_star, c_star, K, obj_cst = simplify_sedumi_model(A_star,
-                                                               b_star,
-                                                               c_star,
-                                                               K,
-                                                               allow_nonzero_b=False)
+    if simplify:
+        A_star, b_star, c_star, K, obj_cst = simplify_sedumi_model(A_star,
+                                                                   b_star,
+                                                                   c_star,
+                                                                   K,
+                                                                   allow_nonzero_b=False)
     assert obj_cst == 0, "This shouldn't be possible with allow_nonzero_b=False."
     return simplify_sedumi_model(A_star, b_star, c_star, K)
 
