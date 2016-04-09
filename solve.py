@@ -8,7 +8,7 @@ Created on Fri Apr  8 01:23:57 2016
 import os.path
 
 import sedumi_writer as sw
-import sdpt3_solve_glue as ls
+import solve_locally as ls
 import result as res
 
 def sdpt3_solve(problem, mode, matfile_target, output_target=None, discard_matfile=True):
@@ -41,7 +41,7 @@ def sdpt3_solve(problem, mode, matfile_target, output_target=None, discard_matfi
                               output_target,
                               discard_matfile=discard_matfile)
     elif mode == 'neos':
-        import sdpt3_solve_on_neos as ns
+        import solve_neos as ns
         msg = ns.neos_solve(matfile_target,
                             output_target=output_target,
                             discard_matfile=discard_matfile)

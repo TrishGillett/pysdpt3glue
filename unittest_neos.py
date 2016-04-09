@@ -13,8 +13,8 @@ import scipy.io
 
 import cvxpy
 
-import wrappers as wr
-import sdpt3_solve_on_neos as ns
+import solve as slv
+import solve_neos as ns
 import result as res
 
 
@@ -83,7 +83,7 @@ class TestBlackbox(unittest.TestCase):
 
         obj = cvxpy.Minimize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
-        result = wr.sdpt3_solve(problem, 'neos', matfile_target, output_target=output_target)
+        result = slv.sdpt3_solve(problem, 'neos', matfile_target, output_target=output_target)
 #        assert result['primal_z'] == # TODO re-check the actual solution to this
         print result['primal_z']
 
@@ -102,7 +102,7 @@ class TestBlackbox(unittest.TestCase):
 
         obj = cvxpy.Maximize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
-        wr.sdpt3_solve(problem, 'neos', matfile_target, output_target=output_target, discard_matfile=False)
+        slv.sdpt3_solve(problem, 'neos', matfile_target, output_target=output_target, discard_matfile=False)
 
 
 
