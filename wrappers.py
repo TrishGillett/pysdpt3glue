@@ -8,8 +8,7 @@ Created on Fri Apr  8 01:23:57 2016
 import os.path
 
 import sedumi_writer as sw
-import sdpt3_solve_on_neos as ns
-import sdpt3_solve_glue as ms
+import sdpt3_solve_glue as ls
 import result as res
 
 def sdpt3_solve(problem, mode, matfile_target, output_target=None, discard_matfile=True):
@@ -18,10 +17,10 @@ def sdpt3_solve(problem, mode, matfile_target, output_target=None, discard_matfi
     it by NEOS or a local Matlab/SDPT3 installation, then constructs the result,
     prints it, and returns it.
     '''
-    assert mode in ['local', 'neos'], \
-        "Please choose mode equal to either 'local' or 'neos'."
-    assert mode != 'local' or output_target, \
-        "If mode='local', an output_target must be provided."
+    assert mode in ['matlab', 'octave', 'neos'], \
+        "Please choose mode equal to either 'matlab', 'octave', or 'neos'."
+    assert mode not in ['matlab', 'octave'] or output_target, \
+        "If mode is 'matlab' or 'octave', an output_target must be provided."
     assert not os.path.exists(matfile_target), \
         "Something already exists at matfile_target, we won't overwrite it."
     assert not os.path.exists(output_target), \
@@ -33,11 +32,16 @@ def sdpt3_solve(problem, mode, matfile_target, output_target=None, discard_matfi
 
     # Depending on the mode, solve the problem using a local Matlab+SDPT3
     # installation or on the NEOS server
-    if mode == 'local':
-        msg = ms.matlab_solve(matfile_target,
+    if mode == 'matlab':
+        msg = ls.matlab_solve(matfile_target,
+                              output_target,
+                              discard_matfile=discard_matfile)
+    elif mode == 'octave':
+        msg = ls.octave_solve(matfile_target,
                               output_target,
                               discard_matfile=discard_matfile)
     elif mode == 'neos':
+        import sdpt3_solve_on_neos as ns
         msg = ns.neos_solve(matfile_target,
                             output_target=output_target,
                             discard_matfile=discard_matfile)
