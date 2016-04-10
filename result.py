@@ -10,10 +10,18 @@ from numpy import zeros
 
 
 def make_result_dict(msg):
+    '''
+    Extracts some solve information from the log message and constructs a dict.
+    This function will error if the message is empty or does not include the phrase
+    "SDPT3: Infeasible path-following algorithms", which is an indicator that the
+    solver at least started okay.  If the log passes that basic test, we just retrieve
+    what information we can.  If the dict doesn't at least contain a status_num and
+    status_verb, you should check the log manually and see what went wrong.
+    '''
     assert can_use_msg(msg), "Stopping, the message is not properly formed: " + msg
     result_dict = extract_prop_dict(msg)
-    result_dict['X'] = extract_X(msg)
-    result_dict['status_verb'] =  get_verb_status(result_dict['status_num'])
+    result_dict['Xvars'] = extract_X(msg)
+    result_dict['status_verb'] = get_verb_status(result_dict['status_num'])
     return result_dict
 
 
@@ -35,9 +43,9 @@ def extract_prop_dict(msg):
     Given the output message from running SDPT3solve.m, this function
     constructs and returns a dictionary of basic solve result information.
     '''
-    
+
     result_dict = {}
-    
+
     # the key is what we look for in the SDPT3 message output, the value is
     # the name of key we'll save the information to in the output dict.
     keylist = {'number of iterations': 'iterations',
@@ -51,19 +59,19 @@ def extract_prop_dict(msg):
                'Total CPU time (secs)': 'solve_time',
                'CPU time per iteration': 'solve_time_per_iter',
                'termination code': 'status_num'}
-    
+
     for key in keylist:
         result_dict[keylist[key]] = None
-    
+
     line_pattern = re.compile('\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
     phrase_pattern = re.compile('[\w\d\.\-+()][ \w\d\.\-+()]*')
-    
+
     line_list = line_pattern.findall(msg)
     for line in line_list:
         line_parts = phrase_pattern.findall(line)
         key = line_parts[0].rstrip().replace("dual  ", "dual")
         val = handle_msg_item(line_parts[-1].strip())
-        
+
         if key in keylist:
             if keylist[key] is not None:
                 result_dict[keylist[key]] = val
@@ -76,46 +84,67 @@ def extract_X(msg):
     Given the output message from running SDPT3solve.m, reconstruct the X
     matrix from the printed output and return it.
     '''
-    
-    if can_use_msg(msg):
-        Xstart = msg.find('X{2} =') + 6
-        Xend = msg.find('>>', Xstart)
-        Xmsg = msg[Xstart:Xend]
-        chunks = iter(Xmsg.split('\n\n'))
-        X = None
-        start, end = None, None
-        try:
-            while True:
-                curr_chunk = chunks.next().strip()
-                if curr_chunk[:7] == 'Columns':
-                    curr_line = curr_chunk.split(' ')
-                    start = int(curr_line[1])-1
-                    end = int(curr_line[3])-1
-                elif curr_chunk[:6] == 'Column':
-                    curr_line = curr_chunk.split(' ')
-                    start = int(curr_line[1])-1
-                    end = start
-                else:
-                    lines = curr_chunk.split('\n')
-                    if X is None:
-                        size = len(lines)
-                        X = zeros((size, size))
-                        if start is None:
-                            start = 0
-                            end = size-1
-#                        print "X created as a {0} by {0} matrix.".format(size)
-                    for row, line in enumerate(lines):
-                        line = re.sub('[\s][\s]*', ' ', line.strip()).split()
-                        if len(line) != 0:
-#                            print start, end, line
-                            for col in range(start, end+1):
-                                k = col - start
-                                X[row, col] = float(line[k])
-        except StopIteration:
-            if X is not None:
-                return X
-    
-    raise Exception("Something went wrong while extracting X from the message")
+    # First pull out the definitions.  Each starts with 'X{numbers} ='
+    # and we'll keep grabbing text until we hit any of the characters >, <, *, or X
+    var_pattern = re.compile('X\{[\d]*\} =[^><\*X]*')
+    var_list = var_pattern.findall(msg)
+
+    # Xlist will hold the solution variables or matrices
+    Xlist = [None]*len(var_list)
+
+    for i, Xmsg in enumerate(var_list):
+        # Drop the "X{something} =" and strip extra whitespace
+        Xstart = Xmsg.find('=') + 1
+        Xmsg = Xmsg[Xstart:].strip()
+
+        # See if X[i] is a matrix, if so it will have column headers
+        if 'Column' in Xmsg:
+            # Split the data into chunks
+            chunk_pattern = re.compile('Column[^C]*')
+            chunk_list = chunk_pattern.findall(Xmsg)
+
+            # Use regular expressions to split the data into header parts and data parts
+            header = re.compile('Columns* [\d]+[ through [\d]+]?')
+            header_list = header.findall(Xmsg)
+            chunk_list = header.split(Xmsg)[1:] # drop the first, which is ''
+            assert len(header_list) == len(chunk_list)
+
+            # Find out how many columns the matrix has by grabbing the last column number
+            # from the last header
+            int_pattern = re.compile('\d[\d]*')
+            int_list = int_pattern.findall(header_list[-1])
+            cols = int(int_list[-1])
+            # We'll count rows and initialize the matrix during the processing of
+            # the first chunk.
+
+            # Take a matching header and chunk and place the chunk's data in
+            # the columns of Xlist[i] which are indicated by the header.
+            for header, chunk in zip(header_list, chunk_list):
+                # Grab the column numbers from the header, note the first one. It's
+                # the start column we'll use to place the chunk's data in the matrix.
+                int_list = [int(x) for x in int_pattern.findall(header)]
+                col_start = int_list[0] - 1
+
+                # Split the chunk into rows
+                chunk = chunk.strip()
+                chunk = re.sub(' *\n *', '\n', chunk)
+                chunk_lines = chunk.split('\n')
+
+                # Initialize the matrix now if it hasn't been done yet.
+                if Xlist[i] is None:
+                    rows = len(chunk_lines)
+                    Xlist[i] = zeros((rows, cols))
+
+                # Plug the row's data into the matrix
+                for row, line in enumerate(chunk_lines):
+                    for k, item in enumerate(re.split('\s+', line)):
+                        Xlist[i][row, col_start+k] = float(item)
+            print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
+        else:
+            Xlist[i] = float(Xmsg.strip())
+            print "Imported X[{0}] as a scalar.".format(i)
+
+    return Xlist
 
 
 
@@ -125,7 +154,7 @@ def handle_msg_item(x):
     float, or string in that order of preference.  If x is None, None is
     returned.
     '''
-    
+
     if len(x) == 0:
         return None
     else:
@@ -146,12 +175,12 @@ def get_verb_status(status_num):
     returns a phrase (string) explaining the implications of the termination
     code.
     '''
-    
-    SDPT3_pos_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
+
+    sdpt3_pos_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
                                  'primal problem is suspected to be infeasible',
                                  'dual problem is suspected to be infeasible',
                                  'norm(X) or norm(Z) diverging']
-    SDPT3_neg_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
+    sdpt3_neg_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
                                  'relative gap < infeasibility',
                                  'lack of progress in predictor or corrector',
                                  'X or Z not positive definite',
@@ -165,19 +194,18 @@ def get_verb_status(status_num):
     if status_num is None:
         return "no termination code given"
     elif status_num >= 0:
-        return SDPT3_pos_status_map_verb[status_num]
+        return sdpt3_pos_status_map_verb[status_num]
     else:
-        return SDPT3_neg_status_map_verb[-status_num]
+        return sdpt3_neg_status_map_verb[-status_num]
 
 
 def make_result_summary(result_dict):
     '''
     Prints a basic summary of information about an SDPT3 solve result.
     '''
-    
-    return """SDPT3 solve finished with status code {0['solverstatus']}: {0['verb_status']}
-Primal value (from X): {0['primal_z']} (infeasibility: {0['rel_primal_feas']})
-Dual value (bound): {0['dual_z']} (infeasibility: {0['rel_dual_feas']})
-Relative gap: {0['rel_gap']}
+    return """SDPT3 solve finished with status code {0[status_num]}: {0[status_verb]}
+Primal value (from X): {0[primal_z]} (infeasibility: {0[rel_primal_feas]})
+Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})
+Relative gap: {0[rel_gap]}
 Solve time: {1} s
 """.format(result_dict, 0.001*round(1000*result_dict['solve_time']))
