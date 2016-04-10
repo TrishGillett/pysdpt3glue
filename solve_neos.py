@@ -25,6 +25,7 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
     try:
         # any backslashes need to be doubly escaped for the web form
         matfile_target = matfile_target.replace('\\', '\\\\')
+        assert os.path.exists(matfile_target), "The matfile\n{0}\ndoesn't exist".format(matfile_target)
 
         with contextlib.closing(webdriver.Firefox()) as browser:
             browser.get(

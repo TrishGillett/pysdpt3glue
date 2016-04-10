@@ -23,6 +23,19 @@ class TestSimpleNEOSSolve(unittest.TestCase):
     Testing simplification of Sedumi problems.
     '''
 
+    def test_hamming(self):
+        '''
+        Try submitting the .mat for a problem from DIMACS (hamming_7_5_6), to
+        test if we can do submission and result extraction in a case where we
+        know the .mat isn't the problem.
+        '''
+        matfile_path = os.path.join('test_data', 'hamming_7_5_6.mat')
+        assert os.path.exists(matfile_path), \
+            "The DIMACS test problem hamming_7_5_6.mat isn't in the file " + matfile_path
+        result = slv.sdpt3_solve_mat(matfile_path, 'neos', discard_matfile=False)
+        assert abs(result['primal_z'] + 42.6666661) < 0.01
+
+
     @unittest.skip("")
     def test_submission(self):
         '''
