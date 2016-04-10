@@ -35,6 +35,8 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
             file_upload_element = browser.find_element_by_name("field.2")
             file_upload_element.clear()
             file_upload_element.send_keys(matfile_target)
+            assert file_upload_element.get_attribute('value'), \
+                "Couldn't input file name, are you sure it exists?"
 
             # Find the submit button and click it
             submit_xpath = '//input[@type="submit"]'

@@ -47,7 +47,6 @@ def write_sedumi_to_mat(A, b, c, K, target):
     folder = os.path.dirname(target)
     if not os.path.exists(folder):
         os.makedirs(folder)
-    print "Saving to ", target
     scipy.io.savemat(target, {'A': A, 'b': b, 'c': c, 'K': K})
 
 

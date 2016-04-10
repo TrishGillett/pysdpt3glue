@@ -25,6 +25,22 @@ def make_result_dict(msg):
     return result_dict
 
 
+def make_result_summary(result):
+    '''
+    Prints a basic summary of information about an SDPT3 solve result.
+    '''
+    return """SDPT3 solve finished with status code {0[status_num]}: {0[status_verb]}
+Primal value (from X): {0[primal_z]} (infeasibility: {0[rel_primal_feas]})
+Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})
+Relative gap: {0[rel_gap]}
+Solve time: {1} s
+""".format(result, 0.001*round(1000*result['solve_time']))
+
+
+def print_summary(result):
+    ''' Prints out the summary produced by make_result_summary. '''
+    print "\nResult summary:\n" + make_result_summary(result)
+
 
 def can_use_msg(msg):
     '''
@@ -198,14 +214,3 @@ def get_verb_status(status_num):
     else:
         return sdpt3_neg_status_map_verb[-status_num]
 
-
-def make_result_summary(result_dict):
-    '''
-    Prints a basic summary of information about an SDPT3 solve result.
-    '''
-    return """SDPT3 solve finished with status code {0[status_num]}: {0[status_verb]}
-Primal value (from X): {0[primal_z]} (infeasibility: {0[rel_primal_feas]})
-Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})
-Relative gap: {0[rel_gap]}
-Solve time: {1} s
-""".format(result_dict, 0.001*round(1000*result_dict['solve_time']))

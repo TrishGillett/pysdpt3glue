@@ -30,13 +30,15 @@ class TestSimpleNEOSSolve(unittest.TestCase):
         know the .mat isn't the problem.
         '''
         matfile_path = os.path.join('test_data', 'hamming_7_5_6.mat')
+        output_path = 'test_data/hamming_out.txt'
         assert os.path.exists(matfile_path), \
-            "The DIMACS test problem hamming_7_5_6.mat isn't in the file " + matfile_path
-        result = slv.sdpt3_solve_mat(matfile_path, 'neos', discard_matfile=False)
+            "There's nothing at the path " + matfile_path
+        result = slv.sdpt3_solve_mat(matfile_path, 'neos', output_target=output_path, discard_matfile=False)
+
         assert abs(result['primal_z'] + 42.6666661) < 0.01
+        os.remove(output_path)
 
 
-    @unittest.skip("")
     def test_submission(self):
         '''
         Set up the data for two cases of b (0 or nonzero) and two cases of 'f' (2 or 6)
@@ -50,12 +52,12 @@ class TestSimpleNEOSSolve(unittest.TestCase):
         matfile_target = os.path.join('temp', 'matfile.mat')
         output_target = os.path.join('temp', 'output.txt')
         sw.write_sedumi_to_mat(A, b, c, K, matfile_target)
-        msg = ns.neos_solve(matfile_target, output_target=output_target, discard_matfile=True)
-
-        # Process the message
-        result = res.make_result_dict(msg)
-        print "\n" + res.make_result_summary(result)
-        return result
+        result = slv.sdpt3_solve_mat(matfile_target,
+                                     'neos',
+                                     output_target=output_target,
+                                     discard_matfile=True)
+        res.print_summary(result)
+        os.rmdir('temp')
 
 
 
@@ -79,6 +81,7 @@ class TestBlackbox(unittest.TestCase):
         if not os.path.exists(self.temp_folder):
             os.makedirs(self.temp_folder)
 
+    @unittest.skip("")
     def test_min(self):
         '''
         min y s.t.

@@ -51,6 +51,7 @@ def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True
     problem it contains with NEOS or a local Matlab/SDPT3 installation, then
     constructs the result, prints it, and returns it.
     '''
+    matfile_path = os.path.abspath(matfile_path)
     check_output_target(mode, output_target)
 
     # Depending on the mode, solve the problem using a local Matlab+SDPT3
@@ -69,7 +70,6 @@ def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True
                             output_target=output_target,
                             discard_matfile=discard_matfile)
 
-    # Process the message
     result = res.make_result_dict(msg)
-    print "\nResult summary:\n" + res.make_result_summary(result)
     return result
+
