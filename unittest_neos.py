@@ -9,12 +9,12 @@ import unittest
 import os
 
 import numpy as np
-import scipy.io
 
 import cvxpy
 
 import solve as slv
 import solve_neos as ns
+import sedumi_writer as sw
 import result as res
 
 
@@ -36,10 +36,7 @@ class TestSimpleNEOSSolve(unittest.TestCase):
 
         matfile_target = os.path.join('temp', 'matfile.mat')
         output_target = os.path.join('temp', 'output.txt')
-        scipy.io.savemat(matfile_target, {'A': A,
-                                          'b': b,
-                                          'c': c,
-                                          'K': K})
+        sw.write_sedumi_to_mat(A, b, c, K, matfile_target)
         msg = ns.neos_solve(matfile_target, output_target=output_target, discard_matfile=True)
 
         # Process the message
@@ -83,7 +80,7 @@ class TestBlackbox(unittest.TestCase):
 
         obj = cvxpy.Minimize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
-        result = slv.sdpt3_solve(problem, 'neos', matfile_target, output_target=output_target)
+        result = slv.sdpt3_solve_problem(problem, 'neos', matfile_target, output_target=output_target)
 #        assert result['primal_z'] == # TODO re-check the actual solution to this
         print result['primal_z']
 
@@ -102,7 +99,7 @@ class TestBlackbox(unittest.TestCase):
 
         obj = cvxpy.Maximize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
-        slv.sdpt3_solve(problem, 'neos', matfile_target, output_target=output_target, discard_matfile=False)
+        slv.sdpt3_solve_problem(problem, 'neos', matfile_target, output_target=output_target, discard_matfile=False)
 
 
 

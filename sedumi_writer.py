@@ -9,13 +9,15 @@ Functions which express problems in Sedumi format and export them as .mat files
 for Matlab
 """
 
+import os
+
 import numpy as np
 import scipy.io
 
 from cvxopt import matrix as cvxmat
 
 
-def write_sedumi_model(problem_data, target, simplify=True):
+def write_cvxpy_to_mat(problem_data, target, simplify=True):
     '''
     Input:
         problem_data: As produced by applying get_problem_data['CVXOPT'] to a
@@ -23,21 +25,30 @@ def write_sedumi_model(problem_data, target, simplify=True):
     Returns: (None)
     Effect:
         Saves a .mat file containing the A, b, c, K that define the problem
-        in Sedumi format (see http://plato.asu.edu/ftp/usrguide.pdf )
+        in Sedumi format to target (see http://plato.asu.edu/ftp/usrguide.pdf)
     '''
-
-#    raise Warning("This is a max problem and Sedumi format handles min problems, "
-#        "so the objective function has been negated and you will need to "
-#        "negate the result of the solve to get back the actual opt val to the "
-#        "relaxation.")
 
     A, b, c, K, offset = make_sedumi_format_problem(problem_data, simplify=simplify)
     assert offset == 0
+    write_sedumi_to_mat(A, b, c, K, target)
+
+
+def write_sedumi_to_mat(A, b, c, K, target):
+    '''
+    Input:
+        A, b, c, K for Sedumi format
+        target: the path where we will save the .mat
+    Effect:
+        Saves a .mat file containing A, b, c, K to target
+    '''
     A = sparsify_tall_mat(A)
     b = sparsify_tall_mat(b)
     c = sparsify_tall_mat(c)
+    folder = os.path.dirname(target)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    print "Saving to ", target
     scipy.io.savemat(target, {'A': A, 'b': b, 'c': c, 'K': K})
-    return target
 
 
 def problem_data_prep(problem_data):
