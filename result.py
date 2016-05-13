@@ -113,8 +113,11 @@ def extract_X(msg):
         Xstart = Xmsg.find('=') + 1
         Xmsg = Xmsg[Xstart:].strip()
 
-        # See if X[i] is a matrix, if so it will have column headers
+        # From Xmsg we can judge if the current variable is a matrix displaying in chunks
+        # due to display width constraints, a matrix displaying all in one chunk,
+        # or a scalar.
         if 'Column' in Xmsg:
+            # If X[i] is a chunked matrix, each chunk has a header containing 'Column'
             # Split the data into chunks
             chunk_pattern = re.compile('Column[^C]*')
             chunk_list = chunk_pattern.findall(Xmsg)
@@ -156,8 +159,28 @@ def extract_X(msg):
                     for k, item in enumerate(re.split('\s+', line)):
                         Xlist[i][row, col_start+k] = float(item)
             print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
+
+        elif ' ' in Xmsg or '\n' in Xmsg:
+            # Otherwise if it has spaces or line breaks it's a non-chunked matrix
+            Xmsg = Xmsg.strip()
+            Xmsg = re.sub(' +', ' ', Xmsg)
+            Xmsg = re.sub(' *\n *', '\n', Xmsg)
+            Xmsg_lines = Xmsg.split('\n')
+
+            # Initialize the matrix.
+            rows = len(Xmsg_lines)
+            cols = len(Xmsg_lines[0].split())
+            Xlist[i] = zeros((rows, cols))
+
+            # Plug the row's data into the matrix
+            for row, line in enumerate(Xmsg_lines):
+                for k, item in enumerate(re.split('\s+', line)):
+                    Xlist[i][row, k] = float(item)
+            print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
+
         else:
-            Xlist[i] = float(Xmsg.strip())
+            # Otherwise it's a scalar
+            Xlist[i] = float(Xmsg)
             print "Imported X[{0}] as a scalar.".format(i)
 
     return Xlist
