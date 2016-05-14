@@ -8,8 +8,9 @@ Created on Thu Apr  7 16:22:17 2016
 import unittest
 
 import numpy as np
+import scipy
 
-from sedumi_writer import simplify_sedumi_model, clean_K_dims
+from sedumi_writer import simplify_sedumi_model, sparsify_tall_mat, clean_K_dims
 
 
 class TestSedumiSimplification(unittest.TestCase):
@@ -77,6 +78,16 @@ class TestSWHelpers(unittest.TestCase):
     '''
     Testing helper functions used in sedumi problem writing.
     '''
+
+    def test_sparsify_tall_mat(self):
+        '''
+        Test that our sparsify_tall_mat method gets the same result as normal
+        sparsification.
+        '''
+        M = np.random.random(size=(1000,1000))
+        M1 = sparsify_tall_mat(M, block_height=5)
+        M2 = scipy.sparse.coo_matrix(M)
+        self.assertEqual((M1!=M2).nnz, 0)
 
     def test_clean_K_dims(self):
         '''
