@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 import scipy
 
-from sedumi_writer import simplify_sedumi_model, sparsify_tall_mat, clean_K_dims
+import sedumi_writer as sw
 
 
 class TestSedumiSimplification(unittest.TestCase):
@@ -37,12 +37,11 @@ class TestSedumiSimplification(unittest.TestCase):
         '''
         Test the case where b = 0 and 'f' = 2
         '''
-        A, b, c, K, offset = simplify_sedumi_model(self.A,
-                                                   self.b1,
-                                                   self.c,
-                                                   self.K1,
-                                                   allow_nonzero_b=False)
-#        print A, b, c, K
+        A, b, c, K, offset = sw.simplify_sedumi_model(self.A,
+                                                      self.b1,
+                                                      self.c,
+                                                      self.K1,
+                                                      allow_nonzero_b=False)
         assert offset == 0
         assert K['f'] == 0
         assert K['l'] == 1
@@ -58,12 +57,11 @@ class TestSedumiSimplification(unittest.TestCase):
         '''
         Test the case where b = 0 and 'f' = 6
         '''
-        A, b, c, K, offset = simplify_sedumi_model(self.A,
-                                                   self.b1,
-                                                   self.c,
-                                                   self.K2,
-                                                   allow_nonzero_b=False)
-#        print A, b, c, K
+        A, b, c, K, offset = sw.simplify_sedumi_model(self.A,
+                                                      self.b1,
+                                                      self.c,
+                                                      self.K2,
+                                                      allow_nonzero_b=False)
         assert offset == 0
         assert K['f'] == 3
         assert K['l'] == self.K2['l']
@@ -85,7 +83,7 @@ class TestSWHelpers(unittest.TestCase):
         sparsification.
         '''
         M = np.random.random(size=(1000,1000))
-        M1 = sparsify_tall_mat(M, block_height=5)
+        M1 = sw.sparsify_tall_mat(M, block_height=5)
         M2 = scipy.sparse.coo_matrix(M)
         self.assertEqual((M1!=M2).nnz, 0)
 
@@ -93,7 +91,7 @@ class TestSWHelpers(unittest.TestCase):
         '''
         Test that the clean_K_dims method changes all integer components of K to floats
         '''
-        K = clean_K_dims({'d': 7, 'p': [4], 'q': [3, 5]})
+        K = sw.clean_K_dims({'d': 7, 'p': [4], 'q': [3, 5]})
         for key in K:
             self.assertIsInstance(K['p'], list)
             self.assertIsInstance(K['q'], list)
