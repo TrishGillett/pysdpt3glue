@@ -9,7 +9,7 @@ import unittest
 
 import numpy as np
 
-from sedumi_writer import simplify_sedumi_model
+from sedumi_writer import simplify_sedumi_model, clean_K_dims
 
 
 class TestSedumiSimplification(unittest.TestCase):
@@ -71,6 +71,26 @@ class TestSedumiSimplification(unittest.TestCase):
         np.allclose(b, np.array([[0.]]))
         np.allclose(c, np.array([[4., 5., 6., 7., 8., 6.5, 10.]]))
 
+
+
+class TestSWHelpers(unittest.TestCase):
+    '''
+    Testing helper functions used in sedumi problem writing.
+    '''
+
+    def test_clean_K_dims(self):
+        '''
+        Test that the clean_K_dims method changes all integer components of K to floats
+        '''
+        K = clean_K_dims({'d': 7, 'p': [4], 'q': [3, 5]})
+        for key in K:
+            self.assertIsInstance(K['p'], list)
+            self.assertIsInstance(K['q'], list)
+            
+            self.assertIsInstance(K['d'], (np.float32, np.float64, float))
+            self.assertIsInstance(K['p'][0], (np.float32, np.float64, float))
+            self.assertIsInstance(K['q'][1], (np.float32, np.float64, float))
+            
 
 
 

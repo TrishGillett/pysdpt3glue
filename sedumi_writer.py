@@ -44,10 +44,30 @@ def write_sedumi_to_mat(A, b, c, K, target):
     A = sparsify_tall_mat(A)
     b = sparsify_tall_mat(b)
     c = sparsify_tall_mat(c)
+    K = clean_K_dims(K)
+
+    # Check that target folder exists
     folder = os.path.dirname(target)
     if not os.path.exists(folder):
         os.makedirs(folder)
+
     scipy.io.savemat(target, {'A': A, 'b': b, 'c': c, 'K': K})
+
+def clean_K_dims(K):
+    '''
+    Matlab requires the dimensions to be given in floating point numbers,
+    this checker ensures that they are.
+    '''
+    for p in K:
+        # let's try treating this like a list or tuple, and if that falls
+        # through then we'll assume it's a single number instead.
+        if isinstance(K[p], list):
+            for i, x in enumerate(K[p]):
+                K[p][i] = 1.*x
+        else:
+            K[p] = 1.*K[p]
+    return K
+
 
 
 def problem_data_prep(problem_data):
