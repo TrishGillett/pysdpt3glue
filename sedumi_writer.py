@@ -119,35 +119,35 @@ def make_sedumi_format_problem(problem_data, simplify=True):
 #==============================================================================
     num_sedumi_vars = nx + ni + num_sdp_vars
 
-    c_star = np.zeros((1, num_sedumi_vars))
-    c_star[0, 0:nx] = problem_data['c']
+    c = np.zeros((1, num_sedumi_vars))
+    c[0, 0:nx] = problem_data['c']
 
-    A_star = np.zeros((ne + ni + num_sdp_vars, num_sedumi_vars))
-    b_star = np.zeros((ne + ni + num_sdp_vars, 1))
+    A = np.zeros((ne + ni + num_sdp_vars, num_sedumi_vars))
+    b = np.zeros((ne + ni + num_sdp_vars, 1))
 
     # Fill in blocks for Ax = b constraints
-    A_star[0:ne, 0:nx] = problem_data['A']
-    b_star[0:ne] = problem_data['b']
+    A[0:ne, 0:nx] = problem_data['A']
+    b[0:ne] = problem_data['b']
 
     # Fill in blocks for Gx + s = h
-    A_star[ne:ne + ni, 0:nx] = problem_data['G'][:ni, :] # = Gl
-    A_star[ne:ne + ni, nx:nx + ni] = np.eye(ni)
-    b_star[ne:ne + ni] = problem_data['h'][:ni, :] # = hl
+    A[ne:ne + ni, 0:nx] = problem_data['G'][:ni, :] # = Gl
+    A[ne:ne + ni, nx:nx + ni] = np.eye(ni)
+    b[ne:ne + ni] = problem_data['h'][:ni, :] # = hl
 
     # Fill out blocks defining h - Gs = vec(Y), where Y is the PSD matrix
-    A_star[ne + ni:, 0:nx] = problem_data['G'][ni:, :] # = Gs
-    A_star[ne + ni:, nx+ni:] = np.eye(num_sdp_vars)
-    b_star[ne + ni:] = problem_data['h'][ni:, :] # = hs
+    A[ne + ni:, 0:nx] = problem_data['G'][ni:, :] # = Gs
+    A[ne + ni:, nx+ni:] = np.eye(num_sdp_vars)
+    b[ne + ni:] = problem_data['h'][ni:, :] # = hs
 
     K = {'f': nx, 'l': dims['l'], 's': dims['s']}
     if simplify:
-        A_star, b_star, c_star, K, obj_cst = simplify_sedumi_model(A_star,
-                                                                   b_star,
-                                                                   c_star,
-                                                                   K,
-                                                                   allow_nonzero_b=False)
-    assert obj_cst == 0, "This shouldn't be possible with allow_nonzero_b=False."
-    return simplify_sedumi_model(A_star, b_star, c_star, K)
+        A, b, c, K, obj_cst = simplify_sedumi_model(A,
+                                                    b,
+                                                    c,
+                                                    K,
+                                                    allow_nonzero_b=False)
+        assert obj_cst == 0, "This shouldn't be possible with allow_nonzero_b=False."
+    return A, b, c, K
 
 
 def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
