@@ -139,7 +139,8 @@ def make_sedumi_format_problem(problem_data, simplify=True):
     A[ne + ni:, nx+ni:] = np.eye(num_sdp_vars)
     b[ne + ni:] = problem_data['h'][ni:, :] # = hs
 
-    K = {'f': nx, 'l': dims['l'], 's': dims['s']}
+    obj_cst = 0.
+    K = {'f': nx, 'l': dims['l'], 'q': [], 's': dims['s']}
     if simplify:
         A, b, c, K, obj_cst = simplify_sedumi_model(A,
                                                     b,
@@ -147,8 +148,29 @@ def make_sedumi_format_problem(problem_data, simplify=True):
                                                     K,
                                                     allow_nonzero_b=False)
         assert obj_cst == 0, "This shouldn't be possible with allow_nonzero_b=False."
-    return A, b, c, K
+    else:
+        A, b, c, K = symmetrize_sedumi_model(A, b, c, K)
+    return A, b, c, K, obj_cst
 
+def symmetrize_sedumi_model(A, b, c, K):
+    '''
+    
+    '''
+    colstart = K['f'] + K['l'] + sum(K['q'])
+    
+    for s in K['s']:
+        for i in range(s):
+            for j in range(i+1, s):
+                ijcol = colstart + i*s + j
+                jicol = colstart + j*s + i
+                averaged_Acol = 0.5*(A[:, ijcol] + A[:, jicol])
+                A[:, ijcol] = averaged_Acol
+                A[:, jicol] = averaged_Acol
+                averaged_c = 0.5*(c[0, ijcol] + c[0, jicol])
+                c[0, ijcol] = averaged_c
+                c[0, jicol] = averaged_c
+        colstart + s**2
+    return A, b, c, K
 
 def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
     '''
@@ -227,10 +249,14 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
             n_deleted_l += 1
         else:
             cols_to_keep.append(col)
+    
+    # Symmetrize the use of PSD matrix variables.  We do this now because it might
+    # zero out some additional ctrs which we'll check for next.
+    A, b, c, K = symmetrize_sedumi_model(A, b, c, K)
 
-    # or any ctrs that are trivial (0x = 0).  A ctr of 0x = b would make the
-    # problem infeasible, but in that case we'll leave it in so the user finds
-    # it when they solve.
+    # Now figure out which ctrs are nontrivial (trivial meaning 0x = 0).
+    # Note that A ctr of 0x = b would make the problem infeasible, but in that case
+    # we'll leave it in so the user finds it when they solve.
     rows_to_keep = []
     for row in range(n_ctr):
         if b[row, 0] == 0 and not abs(A[row, :]).any():
@@ -248,7 +274,10 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
 
     # problem dimensions
     assert len(cols_to_keep) + n_deleted_f + n_deleted_l
-    K = {'f': K['f'] - n_deleted_f, 'l': K['l'] - n_deleted_l, 's': K['s']}
+    K = {'f': K['f'] - n_deleted_f,
+         'l': K['l'] - n_deleted_l,
+         'q': K['q'],
+         's': K['s']}
     return A, b, c, K, offset
 
 

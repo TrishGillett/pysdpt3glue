@@ -29,8 +29,8 @@ class TestSedumiSimplification(unittest.TestCase):
         self.b1 = 1.*np.array([0, 0, 0, 0]).reshape(4, 1)
         self.b2 = 1.*np.array([1, 2, 3, 4]).reshape(4, 1)
         self.c = 1.*np.array([2, 2, 3, 4, 5, 6, 7, 8, 9, 10]).reshape(1, 10)
-        self.K1 = {'f': 2, 'l': 4, 's': [2]}
-        self.K2 = {'f': 6, 'l': 0, 's': [2]}
+        self.K1 = {'f': 2, 'l': 4, 'q': [], 's': [2]}
+        self.K2 = {'f': 6, 'l': 0, 'q': [], 's': [2]}
 
 
     def test_case_zero_2(self):
@@ -46,11 +46,12 @@ class TestSedumiSimplification(unittest.TestCase):
         assert K['f'] == 0
         assert K['l'] == 1
         assert len(K['s']) == 1 and K['s'][0] == 2
-        np.allclose(A, np.array([[2., 0., 0., 1., 0.],
-                                 [1., 0., 0., 1., 1.]]))
-        np.allclose(b, np.array([[0.],
-                                 [0.]]))
-        np.allclose(c, np.array([[5., 7., 8., 9., 10.]]))
+        
+        assert np.allclose(A, np.array([[2., 0., 0.5, 0.5, 0.],
+                                        [1., 0., 0.5, 0.5, 1.]])), "A was {0}".format(A)
+        assert np.allclose(b, np.array([[0.],
+                                        [0.]])), "b was {0}".format(b)
+        assert np.allclose(c, np.array([[5., 7., 8.5, 8.5, 10.]])), "c was {0}".format(c)
 
 
     def test_case_zero_6(self):
@@ -66,10 +67,9 @@ class TestSedumiSimplification(unittest.TestCase):
         assert K['f'] == 3
         assert K['l'] == self.K2['l']
         assert len(K['s']) == 1 and K['s'][0] == 2
-        np.allclose(A, np.array([[0., 0., 0., 0., 0., 0.5, 1.]]))
-        np.allclose(b, np.array([[0.]]))
-        np.allclose(c, np.array([[4., 5., 6., 7., 8., 6.5, 10.]]))
-
+        assert np.allclose(A, np.array([[0., 0., 0., 0., 0.25, 0.25, 1.]])), "A was {0}".format(A)
+        assert np.allclose(b, np.array([[0.]])), "b was {0}".format(b)
+        assert np.allclose(c, np.array([[4., 5., 6., 7., 7.25, 7.25, 10.]])), "c was {0}".format(c)
 
 
 class TestSWHelpers(unittest.TestCase):

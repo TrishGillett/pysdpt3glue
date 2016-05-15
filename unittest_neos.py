@@ -96,7 +96,6 @@ class TestBlackbox(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree('temp')
 
-    @unittest.skip("")
     def test_min(self):
         '''
         min y s.t.
@@ -106,8 +105,8 @@ class TestBlackbox(unittest.TestCase):
             |x  1  z| is PSD
             [y  z  1]
         '''
-        matfile_target = os.path.join(self.temp_folder, 'matfile.mat')
-        output_target = os.path.join(self.temp_folder, 'output.txt')
+        matfile_target = os.path.join(self.temp_folder, 'matfilemin.mat')
+        output_target = os.path.join(self.temp_folder, 'outputmin.txt')
 
         obj = cvxpy.Minimize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
@@ -118,7 +117,7 @@ class TestBlackbox(unittest.TestCase):
         self.assertAlmostEqual(result['primal_z'], -0.978, places=2)
 
 
-    @unittest.skip("")
+    @unittest.expectedFailure
     def test_max(self):
         '''
         max y s.t.
@@ -128,8 +127,8 @@ class TestBlackbox(unittest.TestCase):
             |x  1  z| is PSD
             [y  z  1]
         '''
-        matfile_target = os.path.join(self.temp_folder, 'matfile.mat')
-        output_target = os.path.join(self.temp_folder, 'output.txt')
+        matfile_target = os.path.join(self.temp_folder, 'matfilemax.mat')
+        output_target = os.path.join(self.temp_folder, 'outputmax.txt')
 
         obj = cvxpy.Maximize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
@@ -137,6 +136,10 @@ class TestBlackbox(unittest.TestCase):
                                          'neos',
                                          matfile_target,
                                          output_target=output_target)
+        # The opt value of the max problem is ~0.871921, but when we retrieved
+        # the cvxopt data it was flipped to be a min problem, so for now this
+        # is an expected failure until we figure out how to tell from the cvxpy
+        # problem whether it's min or max.
         self.assertAlmostEqual(result['primal_z'], 0.872, places=2)
 
 
