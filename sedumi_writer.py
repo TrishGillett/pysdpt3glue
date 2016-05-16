@@ -218,7 +218,7 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
             bk = b[ctr_k, 0]
             factor = 1.*bk/aki
             b[:, 0] += -factor*A[:, i]
-            offset += -factor*c[0, i]
+            offset += factor*c[0, i]
 
             if j is not None:
                 # Akixi + Akjxj = bk case
