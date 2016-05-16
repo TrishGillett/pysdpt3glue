@@ -13,7 +13,55 @@ import scipy
 import sedumi_writer as sw
 
 
-class TestSedumiSimplification(unittest.TestCase):
+class TestSlackSimplification(unittest.TestCase):
+    '''
+    Testing simplification of Sedumi problems.
+    '''
+
+    def setUp(self):
+        '''
+        Set up the data for two cases of b (0 or nonzero) and two cases of 'f' (2 or 6)
+        '''
+        self.c = 1.*np.array([1, 2, 3, 4, 5, 6]).reshape(1, 6)
+        self.K = {'f': 0, 'l': 6, 'q': [], 's': []}
+        self.A = 1.*np.array([[1, 0, 0, 0, 1, 0], # s1 + s5 = 1
+                              [0, 1, 0, 0, 0, 1], # s2 + s6 = -2
+                              [0, 0, 1, 0, 0, 0], # s3 = 3
+                              [0, 0, 0, 1, 0, 0], # s4 = -4
+                              [0, 0, 0, 0, -1, 0], # -s5 = 5
+                              [0, 0, 0, 0, 0, -1]]) # -s6 = -6
+        self.b = 1.*np.array([1, -2, 3, -4, 5, -6]).reshape(6, 1)
+
+    def test_case_zero_2(self):
+        '''
+        Test the elimination of nonnegative constrained variables.
+        The problem is infeasible, but this is just to test simplification.
+        '''
+        A, b, c, K, offset = sw.simplify_sedumi_model(self.A,
+                                                      self.b,
+                                                      self.c,
+                                                      self.K,
+                                                      allow_nonzero_b=True)
+        print offset
+        assert offset == 45.
+        assert K['f'] == 0
+        assert K['l'] == 4
+        assert len(K['q']) == 0
+        assert len(K['s']) == 0
+
+        assert np.allclose(A, np.array([[1, 0, 0, 1],
+                                        [0, 1, 0, 0],
+                                        [0, 0, 1, 0],
+                                        [0, 0, 0, -1]])), "A was {0}".format(A)
+        assert np.allclose(b, np.array([[1.],
+                                        [-8.],
+                                        [-4.],
+                                        [5.]])), "b was {0}".format(b)
+        assert np.allclose(c, np.array([[1., 2., 4., 5.]])), "c was {0}".format(c)
+
+
+
+class TestFreeSimplification(unittest.TestCase):
     '''
     Testing simplification of Sedumi problems.
     '''

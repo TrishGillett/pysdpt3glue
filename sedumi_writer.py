@@ -186,7 +186,9 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
               the simplified problem in order to make it equivalent.  With
               allow_nonzero_b, offset will be 0.
     '''
-    n_free = K['f'] # the first n_elig variables will be eligible for elimination
+    n_free = K['f'] # the first n_free variables will be eligible for any kind of elimination
+    n_nonneg = K['l'] # the next n_nonneg variables will be eligible for only the simplest
+                      # substitution aij*xj=bi and only in the case where bi/aij >=0.
     n_vars = c.size
     n_ctr = b.size
 
@@ -210,13 +212,20 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
     for ctr_k in range(n_ctr):
         i, j = check_eliminatibility(A[ctr_k, :],
                                      b[ctr_k, 0],
-                                     n_elig=n_free,
+                                     n_elig=n_free+n_nonneg,
                                      allow_nonzero_b=allow_nonzero_b)
-        if i is not None:
-            # Akixi (optionally + Akjxj) = bk case, eliminate xi using xi = (Akj/Aki) - (bk/Aki)*x_j
+        # Two cases where we can eliminate xi:
+        # 1) xi is a free var
+        free_ok = (i is not None and i < n_free)
+        # 2) xi is a nonneg var, the ctr is of form Akixi = bk, and bk/Aki >= 0
+        nonneg_ok = (i is not None and j is None and 1.*b[ctr_k, 0]/A[ctr_k, i] >= 0)
+
+        if free_ok or nonneg_ok:
             aki = A[ctr_k, i]
             bk = b[ctr_k, 0]
             factor = 1.*bk/aki
+
+            # Akixi (optionally + Akjxj) = bk case, eliminate xi using xi = (Akj/Aki) - (bk/Aki)*x_j
             b[:, 0] += -factor*A[:, i]
             offset += factor*c[0, i]
 
