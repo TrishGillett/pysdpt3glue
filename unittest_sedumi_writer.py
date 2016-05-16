@@ -42,7 +42,6 @@ class TestSlackSimplification(unittest.TestCase):
                                                       self.c,
                                                       self.K,
                                                       allow_nonzero_b=True)
-        print offset
         assert offset == 45.
         assert K['f'] == 0
         assert K['l'] == 4
@@ -80,7 +79,6 @@ class TestFreeSimplification(unittest.TestCase):
         self.K1 = {'f': 2, 'l': 4, 'q': [], 's': [2]}
         self.K2 = {'f': 6, 'l': 0, 'q': [], 's': [2]}
 
-
     def test_case_zero_2(self):
         '''
         Test the case where b = 0 and 'f' = 2
@@ -94,7 +92,6 @@ class TestFreeSimplification(unittest.TestCase):
         assert K['f'] == 0
         assert K['l'] == 1
         assert len(K['s']) == 1 and K['s'][0] == 2
-        
         assert np.allclose(A, np.array([[2., 0., 0.5, 0.5, 0.],
                                         [1., 0., 0.5, 0.5, 1.]])), "A was {0}".format(A)
         assert np.allclose(b, np.array([[0.],
@@ -118,6 +115,54 @@ class TestFreeSimplification(unittest.TestCase):
         assert np.allclose(A, np.array([[0., 0., 0., 0., 0.25, 0.25, 1.]])), "A was {0}".format(A)
         assert np.allclose(b, np.array([[0.]])), "b was {0}".format(b)
         assert np.allclose(c, np.array([[4., 5., 6., 7., 7.25, 7.25, 10.]])), "c was {0}".format(c)
+
+
+
+
+class TestQSimplification(unittest.TestCase):
+    '''
+    Testing simplification of SOC constraints in Sedumi problems.
+    '''
+
+    def setUp(self):
+        '''
+        Set up the data for a problem with 3 vars in an SOC which are not used
+        in other constraints.
+        The 2nd col of A is zero but the var isn't deletable because it's the SOC's 't' var
+        The 4th col of A is zero but the var isn't deletable because it's used in the objective
+        The 6th col of A is zero and the var is deletable.
+        '''
+        self.c = 1.*np.array([1, 0, 3, 4, 5, 0]).reshape(1, 6)
+        self.K = {'f': 0, 'l': 1, 'q': [5], 's': []}
+        self.A = 1.*np.array([[2, 0, 0, 0, 4, 0],
+                              [0, 0, 1, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0],
+                              [0, 0, 2, 0, 1, 0]])
+        self.b = 1.*np.array([1, -2, 0, -4]).reshape(4, 1)
+
+    def test_case(self):
+        '''
+        Test the elimination of nonnegative constrained variables.
+        The problem is infeasible, but this is just to test simplification.
+        '''
+        A, b, c, K, offset = sw.simplify_sedumi_model(self.A,
+                                                      self.b,
+                                                      self.c,
+                                                      self.K,
+                                                      allow_nonzero_b=True)
+        assert offset == 0.
+        assert K['f'] == 0
+        assert K['l'] == 1
+        assert len(K['q']) == 1 and K['q'][0] == 4
+        assert len(K['s']) == 0
+
+        assert np.allclose(A, np.array([[2, 0, 0, 0, 4],
+                                        [0, 0, 1, 0, 0],
+                                        [0, 0, 2, 0, 1]])), "A was {0}".format(A)
+        assert np.allclose(b, np.array([[1.],
+                                        [-2.],
+                                        [-4.]])), "b was {0}".format(b)
+        assert np.allclose(c, np.array([[1., 0., 3., 4., 5.]])), "c was {0}".format(c)
 
 
 class TestSWHelpers(unittest.TestCase):

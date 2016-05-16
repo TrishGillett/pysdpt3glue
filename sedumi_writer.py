@@ -244,8 +244,8 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
     n_deleted_f = 0
     n_deleted_l = 0
     cols_to_keep = []
-    vars_fl = n_free + K['l']
-    for col in range(n_vars):
+    vars_fl = n_free + n_nonneg
+    for col in range(vars_fl):
         # free vars not in constraints must have 0 coeff in obj, else unbounded.
         # nonneg vars not in constraints must have >=0 coeff in obj, else unbounded.
         # if a var makes the probblem unbounded, we'll leave it alone and let
@@ -258,6 +258,21 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
             n_deleted_l += 1
         else:
             cols_to_keep.append(col)
+
+    # SOC vars eliminatable iff they're not the first var of their vector and they're unused in any ctrs.
+    col_start = n_free + n_nonneg
+    
+    for i, q_size, in enumerate(K['q']):
+        cols_to_keep.append(col_start)
+        for col in range(col_start + 1, col_start + q_size):
+            if c[0, col] == 0 and not abs(A[:, col]).any():
+                K['q'][i] += -1
+            else:
+                cols_to_keep.append(col)
+        col_start += q_size
+
+    # All SDP vars kept
+    cols_to_keep += range(col_start, n_vars)
     
     # Symmetrize the use of PSD matrix variables.  We do this now because it might
     # zero out some additional ctrs which we'll check for next.
@@ -268,11 +283,8 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
     # we'll leave it in so the user finds it when they solve.
     rows_to_keep = []
     for row in range(n_ctr):
-        if b[row, 0] == 0 and not abs(A[row, :]).any():
-            pass
-        else:
+        if b[row, 0] != 0 or abs(A[row, :]).any():
             rows_to_keep.append(row)
-
 #==============================================================================
 #    SIMPLIFICATION STEP PART TWO: construct final matrices with only the rows/cols we want
 #==============================================================================
