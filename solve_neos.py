@@ -81,11 +81,22 @@ def _get_driver():
     raise WebDriverException("No web drivers are available.")
 
 
+class NeosError(Exception):
+    """ Error caused by Neos server.
+
+    This error is raised when an error occurs during calling Neos.
+    """
+    pass
+
+
 def neos_solve(matfile_target, output_target=None, discard_matfile=True):
     '''
     Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
     Returns the solve result message from NEOS.
     If write_output_to, has the side effect of writing the message to this file.
+
+    Raises:
+      NeosError: When an error occurs by using Neos server.
     '''
     if not os.path.exists(matfile_target):
         raise ValueError("The matfile {0} doesn't exist".format(matfile_target))
@@ -117,7 +128,11 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
     except WebDriverException:
         # If that fails for any reason, we ask the user to submit the problem
         # manually and copy-paste the lines giving the id and password.
-        jobid, pwd = ask_user_to_submit(matfile_target)
+        try:
+            jobid, pwd = ask_user_to_submit(matfile_target)
+
+        except EOFError as e:
+            raise NeosError(e)
 
     neos_int = NeosInterface()
     msg = neos_int.track_and_return(jobid, pwd)
@@ -156,22 +171,23 @@ def ask_user_to_submit(matfilepath):
     Instructs the user to manually submit their problem and then feed the ID
     and password back into the program.
     '''
+    print (
+        "Selenium submission failed, submit it manually!"
+        "Find this files and submit them on the website:"
+        "{0}"
+        "Once you've submitted your problem, copy and paste the"
+        "two lines that look like this"
+        "        Job#     : xxxxxxx"
+        "        Password : yyyyyyyy"
+        "below and hit Enter. Or, you can just enter the job and"
+        "password strings on consecutive lines.  Good luck!"
+    ).format(matfilepath)
 
-    print '''
-Selenium submission failed, submit it manually!
-Find this files and submit them on the website:
-{0}
-
-Once you've submitted your problem, copy and paste the
-two lines that look like this
-        Job#     : xxxxxxx
-        Password : yyyyyyyy
-below and hit Enter. Or, you can just enter the job and
-password strings on consecutive lines.  Good luck!'''.format(matfilepath)
     user_input = ''
     while not user_input:
         # TODO: Could raise EOFError.
         user_input = raw_input()
+
     try:
         jobid = int(user_input.strip().split()[-1])
         pwd = raw_input().strip().split()[-1]
@@ -180,7 +196,6 @@ password strings on consecutive lines.  Good luck!'''.format(matfilepath)
     except:
         print "\nTry again!\n"
         return ask_user_to_submit(matfilepath)
-
 
 
 class NeosInterface(object):
