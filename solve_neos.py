@@ -14,6 +14,43 @@ import contextlib
 from time import sleep
 
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+
+
+WEBDRIVERS = {
+    "Firefox": webdriver.Firefox,
+    "PhantomJS": webdriver.PhantomJS
+}
+""" Webdrivers to be tried to use. """
+
+
+@contextlib.contextmanager
+def _get_driver():
+    """ Try to make a webdriver according to installed browsers.
+
+    Returns:
+      Installed webdriver.
+
+    Raises:
+      RuntimeError: When no supported browsers are available.
+    """
+    for name, driver in WEBDRIVERS.items():
+        try:
+            res = driver()
+
+        except (StandardError, WebDriverException) as e:
+            sys.stderr.write(
+                "{0} seems to be not installed: {1}\n".format(name, e))
+
+        else:
+            try:
+                yield res
+            finally:
+                res.close()
+                res.quit()
+            return
+
+    raise RuntimeError, "No web drivers are available."
 
 
 def neos_solve(matfile_target, output_target=None, discard_matfile=True):
@@ -27,13 +64,13 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
         matfile_target = matfile_target.replace('\\', '\\\\')
         assert os.path.exists(matfile_target), "The matfile\n{0}\ndoesn't exist".format(matfile_target)
 
-        with contextlib.closing(webdriver.Firefox()) as browser:
+        with _get_driver() as browser:
             browser.get(
                 'http://www.neos-server.org/neos/solvers/sdp:sdpt3/MATLAB_BINARY.html')
 
             # Find the .mat upload box and input the path to ours
             file_upload_element = browser.find_element_by_name("field.2")
-            file_upload_element.clear()
+            # file_upload_element.clear()
             file_upload_element.send_keys(matfile_target)
             assert file_upload_element.get_attribute('value'), \
                 "Couldn't input file name, are you sure it exists?"
@@ -47,10 +84,10 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
             # we'll try to grab them automatically.
             source = browser.page_source
             jobid, pwd = extract_id_pwd(source)
+
     except:
         # If that fails for any reason, we ask the user to submit the problem
         # manually and copy-paste the lines giving the id and password.
-        browser.close()
         jobid, pwd = ask_user_to_submit(matfile_target)
 
     neos_int = NeosInterface()
