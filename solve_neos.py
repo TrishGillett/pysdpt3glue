@@ -59,10 +59,12 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
     Returns the solve result message from NEOS.
     If write_output_to, has the side effect of writing the message to this file.
     '''
+    if not os.path.exists(matfile_target):
+        raise ValueError("The matfile {0} doesn't exist".format(matfile_target))
+    # any backslashes need to be doubly escaped for the web form
+    matfile_target = matfile_target.replace('\\', '\\\\')
+
     try:
-        # any backslashes need to be doubly escaped for the web form
-        matfile_target = matfile_target.replace('\\', '\\\\')
-        assert os.path.exists(matfile_target), "The matfile\n{0}\ndoesn't exist".format(matfile_target)
 
         with _get_driver() as browser:
             browser.get(
