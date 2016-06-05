@@ -50,7 +50,7 @@ def _get_driver():
                 res.quit()
             return
 
-    raise RuntimeError, "No web drivers are available."
+    raise WebDriverException("No web drivers are available.")
 
 
 def neos_solve(matfile_target, output_target=None, discard_matfile=True):
@@ -72,7 +72,6 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
 
             # Find the .mat upload box and input the path to ours
             file_upload_element = browser.find_element_by_name("field.2")
-            # file_upload_element.clear()
             file_upload_element.send_keys(matfile_target)
             assert file_upload_element.get_attribute('value'), \
                 "Couldn't input file name, are you sure it exists?"
@@ -87,7 +86,7 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
             source = browser.page_source
             jobid, pwd = extract_id_pwd(source)
 
-    except:
+    except WebDriverException:
         # If that fails for any reason, we ask the user to submit the problem
         # manually and copy-paste the lines giving the id and password.
         jobid, pwd = ask_user_to_submit(matfile_target)
@@ -143,6 +142,7 @@ below and hit Enter. Or, you can just enter the job and
 password strings on consecutive lines.  Good luck!'''.format(matfilepath)
     user_input = ''
     while not user_input:
+        # TODO: Could raise EOFError.
         user_input = raw_input()
     try:
         jobid = int(user_input.strip().split()[-1])
