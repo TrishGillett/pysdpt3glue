@@ -1,2 +1,5 @@
+cvxopt
 cvxpy
 selenium
+numpy
+scipy
