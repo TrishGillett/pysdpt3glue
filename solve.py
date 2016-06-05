@@ -25,6 +25,7 @@ def check_output_target(mode, output_target):
         assert not os.path.exists(output_target), \
             "Something already exists at output_target, we won't overwrite it."
 
+
 def sdpt3_solve_problem(problem, mode, matfile_target, output_target=None, discard_matfile=True):
     '''
     A wrapper function that takes a cvxpy problem, makes the .mat file, solves
@@ -72,4 +73,3 @@ def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True
 
     result = res.make_result_dict(msg)
     return result
-

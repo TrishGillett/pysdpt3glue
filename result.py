@@ -4,9 +4,29 @@ Created on Thu Oct 01 01:29:40 2015
 
 @author: Trish
 """
-
 import re
 from numpy import zeros
+
+
+_SDPT3_POS_STATUS_MAP_VERB = (
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
+    'primal problem is suspected to be infeasible',
+    'dual problem is suspected to be infeasible',
+    'norm(X) or norm(Z) diverging'
+)
+
+_SDPT3_NEG_STATYS_MAP_VERB = (
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
+    'relative gap < infeasibility',
+    'lack of progress in predictor or corrector',
+    'X or Z not positive definite',
+    'difficulty in computing predictor or corrector direction',
+    'progress in relative gap or infeasibility is bad',
+    'maximum number of iterations reached',
+    'primal infeasibility has deteriorated too much',
+    'progress in relative gap has deteriorated',
+    'lack of progress in infeasibility'
+)
 
 
 def make_result_dict(msg):
@@ -29,12 +49,13 @@ def make_result_summary(result):
     '''
     Prints a basic summary of information about an SDPT3 solve result.
     '''
-    return """SDPT3 solve finished with status code {0[status_num]}: {0[status_verb]}
-Primal value (from X): {0[primal_z]} (infeasibility: {0[rel_primal_feas]})
-Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})
-Relative gap: {0[rel_gap]}
-Solve time: {1} s
-""".format(result, 0.001*round(1000*result['solve_time']))
+    return (
+        "SDPT3 solve finished with status code {0[status_num]}: {0[status_verb]}"
+        "Primal value (from X): {0[primal_z]} (infeasibility: {0[rel_primal_feas]})"
+        "Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})"
+        "Relative gap: {0[rel_gap]}"
+        "Solve time: {1} s"
+    ).format(result, 0.001*round(1000*result['solve_time']))
 
 
 def print_summary(result):
@@ -53,13 +74,11 @@ def can_use_msg(msg):
     return msg is not None and "SDPT3: Infeasible path-following algorithms" in msg
 
 
-
 def extract_prop_dict(msg):
     '''
     Given the output message from running SDPT3solve.m, this function
     constructs and returns a dictionary of basic solve result information.
     '''
-
     result_dict = {}
 
     # the key is what we look for in the SDPT3 message output, the value is
@@ -76,11 +95,11 @@ def extract_prop_dict(msg):
                'CPU time per iteration': 'solve_time_per_iter',
                'termination code': 'status_num'}
 
-    for key in keylist:
-        result_dict[keylist[key]] = None
+    for key in keylist.values():
+        result_dict[key] = None
 
-    line_pattern = re.compile('\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
-    phrase_pattern = re.compile('[\w\d\.\-+()][ \w\d\.\-+()]*')
+    line_pattern = re.compile(r'\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
+    phrase_pattern = re.compile(r'[\w\d\.\-+()][ \w\d\.\-+()]*')
 
     line_list = line_pattern.findall(msg)
     for line in line_list:
@@ -88,11 +107,9 @@ def extract_prop_dict(msg):
         key = line_parts[0].rstrip().replace("dual  ", "dual")
         val = handle_msg_item(line_parts[-1].strip())
 
-        if key in keylist:
-            if keylist[key] is not None:
-                result_dict[keylist[key]] = val
+        if key in keylist and keylist[key] is not None:
+            result_dict[keylist[key]] = val
     return result_dict
-
 
 
 def extract_X(msg):
@@ -102,7 +119,7 @@ def extract_X(msg):
     '''
     # First pull out the definitions.  Each starts with 'X{numbers} ='
     # and we'll keep grabbing text until we hit any of the characters >, <, *, or X
-    var_pattern = re.compile('X\{[\d]*\} =[^><\*X]*')
+    var_pattern = re.compile(r'X\{[\d]*\} =[^><\*X]*')
     var_list = var_pattern.findall(msg)
 
     # Xlist will hold the solution variables or matrices
@@ -123,14 +140,14 @@ def extract_X(msg):
             chunk_list = chunk_pattern.findall(Xmsg)
 
             # Use regular expressions to split the data into header parts and data parts
-            header = re.compile('Columns* [\d]+[ through [\d]+]?')
+            header = re.compile(r'Columns* [\d]+[ through [\d]+]?')
             header_list = header.findall(Xmsg)
             chunk_list = header.split(Xmsg)[1:] # drop the first, which is ''
             assert len(header_list) == len(chunk_list)
 
             # Find out how many columns the matrix has by grabbing the last column number
             # from the last header
-            int_pattern = re.compile('\d[\d]*')
+            int_pattern = re.compile(r'\d[\d]*')
             int_list = int_pattern.findall(header_list[-1])
             cols = int(int_list[-1])
             # We'll count rows and initialize the matrix during the processing of
@@ -156,7 +173,7 @@ def extract_X(msg):
 
                 # Plug the row's data into the matrix
                 for row, line in enumerate(chunk_lines):
-                    for k, item in enumerate(re.split('\s+', line)):
+                    for k, item in enumerate(re.split(r'\s+', line)):
                         Xlist[i][row, col_start+k] = float(item)
             print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
 
@@ -174,7 +191,7 @@ def extract_X(msg):
 
             # Plug the row's data into the matrix
             for row, line in enumerate(Xmsg_lines):
-                for k, item in enumerate(re.split('\s+', line)):
+                for k, item in enumerate(re.split(r'\s+', line)):
                     Xlist[i][row, k] = float(item)
             print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
 
@@ -186,26 +203,24 @@ def extract_X(msg):
     return Xlist
 
 
-
 def handle_msg_item(x):
     '''
     A function that takes a string x and returns it's interpretation as an int,
     float, or string in that order of preference.  If x is None, None is
     returned.
     '''
-
     if len(x) == 0:
         return None
     else:
         try:
             x = float(x)
             if int(x) == x:
-                x = int(x)
-            return x
-        except:
+                return int(x)
+            else:
+                return x
+        except (TypeError, ValueError):
             pass
     return x
-
 
 
 def get_verb_status(status_num):
@@ -214,26 +229,9 @@ def get_verb_status(status_num):
     returns a phrase (string) explaining the implications of the termination
     code.
     '''
-
-    sdpt3_pos_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-                                 'primal problem is suspected to be infeasible',
-                                 'dual problem is suspected to be infeasible',
-                                 'norm(X) or norm(Z) diverging']
-    sdpt3_neg_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-                                 'relative gap < infeasibility',
-                                 'lack of progress in predictor or corrector',
-                                 'X or Z not positive definite',
-                                 'difficulty in computing predictor or corrector direction',
-                                 'progress in relative gap or infeasibility is bad',
-                                 'maximum number of iterations reached',
-                                 'primal infeasibility has deteriorated too much',
-                                 'progress in relative gap has deteriorated',
-                                 'lack of progress in infeasibility']
-
     if status_num is None:
         return "no termination code given"
     elif status_num >= 0:
-        return sdpt3_pos_status_map_verb[status_num]
+        return _SDPT3_POS_STATUS_MAP_VERB[status_num]
     else:
-        return sdpt3_neg_status_map_verb[-status_num]
-
+        return _SDPT3_NEG_STATYS_MAP_VERB[-status_num]
