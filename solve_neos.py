@@ -90,13 +90,13 @@ class NeosError(Exception):
 
 
 def neos_solve(
-        matfile_target, output_target=None, discard_matfile=True, noprompt=False):
+        matfile_target, output_target=None, discard_matfile=True, no_prompt=False):
     '''
     Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
     Returns the solve result message from NEOS.
     If write_output_to, has the side effect of writing the message to this file.
 
-    If noprompt is True, it doesn't ask id and password manually and raise
+    If no_prompt is True, it doesn't ask id and password manually and raise
     NeosError when some errors occur during connection to neos server.
 
     Raises:
@@ -129,7 +129,7 @@ def neos_solve(
             jobid, pwd = extract_id_pwd(source)
 
     except WebDriverException as e:
-        if noprompt:
+        if no_prompt:
             raise NeosError(e)
 
         # If that fails for any reason, we ask the user to submit the problem
