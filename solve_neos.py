@@ -12,7 +12,9 @@ import os
 import sys
 import contextlib
 from time import sleep
-
+import xmlrpclib
+from xmlrpclib import Fault
+from xmlrpclib import ProtocolError
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
@@ -22,6 +24,32 @@ WEBDRIVERS = {
     "PhantomJS": webdriver.PhantomJS
 }
 """ Webdrivers to be tried to use. """
+
+
+def _print_fault(err, space=2):
+    """ Print message from xmlrpclib.Fault.
+
+    Args:
+      err: xmlrpclib.Fault error.
+      space: Space size to be added before each message.
+    """
+    print " " * space +  "A fault occurred"
+    print " " * space +  "Fault code: {0}".format(err.faultCode)
+    print " " * space +  "Fault string: {0}".format(err.faultString)
+
+
+def _print_protocol_error(err, space=2):
+    """ Print message from xmlrpclib.ProtocolError.
+
+    Args:
+      err: xmlrpclib.ProtocolError error.
+      space: Space size to be added before each message.
+    """
+    print " " * space +  "A protocol error occurred"
+    print " " * space +  "URL: {0}".format(err.url)
+    print " " * space +  "HTTP/HTTPS headers: {0}".format(err.headers)
+    print " " * space +  "Error code: {0}".format(err.errcode)
+    print " " * space +  "Error message: {0}".format(err.errmsg)
 
 
 @contextlib.contextmanager
@@ -164,10 +192,8 @@ class NeosInterface(object):
     models in mind.
     """
     def __init__(self, neos_host=None, neos_port=None):
-        import xmlrpclib
          # Go to xmlrpc and flip on __verbose if you are debugging
          # and want to see ALL xml-rpc communication
-
         if not neos_host:
             neos_host = "neos.mcs.anl.gov"
         if not neos_port:
@@ -176,26 +202,36 @@ class NeosInterface(object):
         neos_url = "http://{host}:{port}".format(host=neos_host, port=neos_port)
         self.server = xmlrpclib.ServerProxy(neos_url)
 
-
     def track_and_return(self, jobid, pwd):
         '''
         Takes a jobid and password for a solve already in progress,
         waits for its status to change to 'Done', and returns the message,
         jobid, and password.
         '''
-        status = ''
         k = 20
-        while status != "Done":
+        while True:
+
             try:
                 status = self.server.getJobStatus(jobid, pwd)
-            except:
-                print "  Error checking status: {0}  (will try again)".format(sys.exc_info()[0])
-            if status != "Done":
-                sleep(k)
+
+            except Fault as err:
+                _print_fault(err)
+                print "  Error checking status: {0}  (will try again)".format(
+                    sys.exc_info()[0])
+
+            except ProtocolError as err:
+                _print_protocol_error(err)
+                print "  Error checking status: {0}  (will try again)".format(
+                    sys.exc_info()[0])
+
+            else:
+                if status == "Done":
+                    break
+
+            sleep(k)
 
         msg = self.get_final_results(jobid, pwd).data
         return msg
-
 
     def get_final_results(self, jobid, pwd):
         '''
@@ -208,5 +244,9 @@ class NeosInterface(object):
         while True:
             try:
                 return self.server.getFinalResults(jobid, pwd)
-            except:
-                sleep(3)
+            except Fault as err:
+                _print_fault(err)
+            except ProtocolError as err:
+                _print_protocol_error(err)
+
+            sleep(3)
