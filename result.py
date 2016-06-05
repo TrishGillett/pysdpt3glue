@@ -215,8 +215,9 @@ def handle_msg_item(x):
         try:
             x = float(x)
             if int(x) == x:
-                x = int(x)
-            return x
+                return int(x)
+            else:
+                return x
         except (TypeError, ValueError):
             pass
     return x
