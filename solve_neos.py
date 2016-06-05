@@ -89,11 +89,15 @@ class NeosError(Exception):
     pass
 
 
-def neos_solve(matfile_target, output_target=None, discard_matfile=True):
+def neos_solve(
+        matfile_target, output_target=None, discard_matfile=True, noprompt=False):
     '''
     Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
     Returns the solve result message from NEOS.
     If write_output_to, has the side effect of writing the message to this file.
+
+    If noprompt is True, it doesn't ask id and password manually and raise
+    NeosError when some errors occur during connection to neos server.
 
     Raises:
       NeosError: When an error occurs by using Neos server.
@@ -104,7 +108,6 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
     matfile_target = matfile_target.replace('\\', '\\\\')
 
     try:
-
         with _get_driver() as browser:
             browser.get(
                 'http://www.neos-server.org/neos/solvers/sdp:sdpt3/MATLAB_BINARY.html')
@@ -125,7 +128,10 @@ def neos_solve(matfile_target, output_target=None, discard_matfile=True):
             source = browser.page_source
             jobid, pwd = extract_id_pwd(source)
 
-    except WebDriverException:
+    except WebDriverException as e:
+        if noprompt:
+            raise NeosError(e)
+
         # If that fails for any reason, we ask the user to submit the problem
         # manually and copy-paste the lines giving the id and password.
         try:
