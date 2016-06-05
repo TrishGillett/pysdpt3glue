@@ -170,6 +170,9 @@ def ask_user_to_submit(matfilepath):
     '''
     Instructs the user to manually submit their problem and then feed the ID
     and password back into the program.
+
+    Raises:
+      EOFError: When a user sends EOF.
     '''
     print (
         "Selenium submission failed, submit it manually!"
@@ -184,18 +187,19 @@ def ask_user_to_submit(matfilepath):
     ).format(matfilepath)
 
     user_input = ''
-    while not user_input:
-        # TODO: Could raise EOFError.
-        user_input = raw_input()
+    while True:
 
-    try:
-        jobid = int(user_input.strip().split()[-1])
-        pwd = raw_input().strip().split()[-1]
-        print "\n=============\n"
-        return jobid, pwd
-    except:
-        print "\nTry again!\n"
-        return ask_user_to_submit(matfilepath)
+        while not user_input:
+            user_input = raw_input()
+
+        try:
+            jobid = int(user_input.strip().split()[-1])
+            pwd = raw_input().strip().split()[-1]
+            print "\n=============\n"
+            return jobid, pwd
+
+        except IndexError:
+            print "\nTry again!\n"
 
 
 class NeosInterface(object):
