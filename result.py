@@ -8,6 +8,27 @@ import re
 from numpy import zeros
 
 
+_SDPT3_POS_STATUS_MAP_VERB = (
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
+    'primal problem is suspected to be infeasible',
+    'dual problem is suspected to be infeasible',
+    'norm(X) or norm(Z) diverging'
+)
+
+_SDPT3_NEG_STATYS_MAP_VERB = (
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
+    'relative gap < infeasibility',
+    'lack of progress in predictor or corrector',
+    'X or Z not positive definite',
+    'difficulty in computing predictor or corrector direction',
+    'progress in relative gap or infeasibility is bad',
+    'maximum number of iterations reached',
+    'primal infeasibility has deteriorated too much',
+    'progress in relative gap has deteriorated',
+    'lack of progress in infeasibility'
+)
+
+
 def make_result_dict(msg):
     '''
     Extracts some solve information from the log message and constructs a dict.
@@ -28,12 +49,13 @@ def make_result_summary(result):
     '''
     Prints a basic summary of information about an SDPT3 solve result.
     '''
-    return """SDPT3 solve finished with status code {0[status_num]}: {0[status_verb]}
-Primal value (from X): {0[primal_z]} (infeasibility: {0[rel_primal_feas]})
-Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})
-Relative gap: {0[rel_gap]}
-Solve time: {1} s
-""".format(result, 0.001*round(1000*result['solve_time']))
+    return (
+        "SDPT3 solve finished with status code {0[status_num]}: {0[status_verb]}"
+        "Primal value (from X): {0[primal_z]} (infeasibility: {0[rel_primal_feas]})"
+        "Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})"
+        "Relative gap: {0[rel_gap]}"
+        "Solve time: {1} s"
+    ).format(result, 0.001*round(1000*result['solve_time']))
 
 
 def print_summary(result):
@@ -206,24 +228,9 @@ def get_verb_status(status_num):
     returns a phrase (string) explaining the implications of the termination
     code.
     '''
-    sdpt3_pos_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-                                 'primal problem is suspected to be infeasible',
-                                 'dual problem is suspected to be infeasible',
-                                 'norm(X) or norm(Z) diverging']
-    sdpt3_neg_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-                                 'relative gap < infeasibility',
-                                 'lack of progress in predictor or corrector',
-                                 'X or Z not positive definite',
-                                 'difficulty in computing predictor or corrector direction',
-                                 'progress in relative gap or infeasibility is bad',
-                                 'maximum number of iterations reached',
-                                 'primal infeasibility has deteriorated too much',
-                                 'progress in relative gap has deteriorated',
-                                 'lack of progress in infeasibility']
-
     if status_num is None:
         return "no termination code given"
     elif status_num >= 0:
-        return sdpt3_pos_status_map_verb[status_num]
+        return _SDPT3_POS_STATUS_MAP_VERB[status_num]
     else:
-        return sdpt3_neg_status_map_verb[-status_num]
+        return _SDPT3_NEG_STATYS_MAP_VERB[-status_num]
