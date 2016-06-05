@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pylint: disable=E1101
 """
 Created on Thu Apr  7 16:22:17 2016
 
@@ -43,21 +44,22 @@ class TestSlackSimplification(unittest.TestCase):
                                                       self.c,
                                                       self.K,
                                                       allow_nonzero_b=True)
-        assert offset == 45.
-        assert K['f'] == 0
-        assert K['l'] == 4
-        assert len(K['q']) == 0
-        assert len(K['s']) == 0
+        self.assertEqual(offset, 45.)
+        self.assertEqual(K['f'], 0)
+        self.assertEqual(K['l'], 4)
+        self.assertEqual(len(K['q']), 0)
+        self.assertEqual(len(K['s']), 0)
 
-        assert np.allclose(A, np.array([[1, 0, 0, 1],
+        self.assertTrue(np.allclose(A, np.array([[1, 0, 0, 1],
                                         [0, 1, 0, 0],
                                         [0, 0, 1, 0],
-                                        [0, 0, 0, -1]])), "A was {0}".format(A)
-        assert np.allclose(b, np.array([[1.],
+                                        [0, 0, 0, -1]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(b, np.array([[1.],
                                         [-8.],
                                         [-4.],
-                                        [5.]])), "b was {0}".format(b)
-        assert np.allclose(c, np.array([[1., 2., 4., 5.]])), "c was {0}".format(c)
+                                        [5.]])), "b was {0}".format(b))
+        self.assertTrue(
+            np.allclose(c, np.array([[1., 2., 4., 5.]])), "c was {0}".format(c))
 
 
 
@@ -89,15 +91,17 @@ class TestFreeSimplification(unittest.TestCase):
                                                       self.c,
                                                       self.K1,
                                                       allow_nonzero_b=False)
-        assert offset == 0
-        assert K['f'] == 0
-        assert K['l'] == 1
-        assert len(K['s']) == 1 and K['s'][0] == 2
-        assert np.allclose(A, np.array([[2., 0., 0.5, 0.5, 0.],
-                                        [1., 0., 0.5, 0.5, 1.]])), "A was {0}".format(A)
-        assert np.allclose(b, np.array([[0.],
-                                        [0.]])), "b was {0}".format(b)
-        assert np.allclose(c, np.array([[5., 7., 8.5, 8.5, 10.]])), "c was {0}".format(c)
+        self.assertEqual(offset, 0)
+        self.assertEqual(K['f'], 0)
+        self.assertEqual(K['l'], 1)
+        self.assertEqual(len(K['s']), 1)
+        self.assertEqual(K['s'][0], 2)
+
+        self.assertTrue(np.allclose(A, np.array([[2., 0., 0.5, 0.5, 0.],
+                                        [1., 0., 0.5, 0.5, 1.]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(b, np.array([[0.],
+                                        [0.]])), "b was {0}".format(b))
+        self.assertTrue(np.allclose(c, np.array([[5., 7., 8.5, 8.5, 10.]])), "c was {0}".format(c))
 
 
     def test_case_zero_6(self):
@@ -109,15 +113,15 @@ class TestFreeSimplification(unittest.TestCase):
                                                       self.c,
                                                       self.K2,
                                                       allow_nonzero_b=False)
-        assert offset == 0
-        assert K['f'] == 3
-        assert K['l'] == self.K2['l']
-        assert len(K['s']) == 1 and K['s'][0] == 2
-        assert np.allclose(A, np.array([[0., 0., 0., 0., 0.25, 0.25, 1.]])), "A was {0}".format(A)
-        assert np.allclose(b, np.array([[0.]])), "b was {0}".format(b)
-        assert np.allclose(c, np.array([[4., 5., 6., 7., 7.25, 7.25, 10.]])), "c was {0}".format(c)
+        self.assertEqual(offset, 0)
+        self.assertEqual(K['f'], 3)
+        self.assertEqual(K['l'], self.K2['l'])
+        self.assertEqual(len(K['s']), 1)
+        self.assertEqual(K['s'][0], 2)
 
-
+        self.assertTrue(np.allclose(A, np.array([[0., 0., 0., 0., 0.25, 0.25, 1.]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(b, np.array([[0.]])), "b was {0}".format(b))
+        self.assertTrue(np.allclose(c, np.array([[4., 5., 6., 7., 7.25, 7.25, 10.]])), "c was {0}".format(c))
 
 
 class TestQSimplification(unittest.TestCase):
@@ -151,19 +155,20 @@ class TestQSimplification(unittest.TestCase):
                                                       self.c,
                                                       self.K,
                                                       allow_nonzero_b=True)
-        assert offset == 0.
-        assert K['f'] == 0
-        assert K['l'] == 1
-        assert len(K['q']) == 1 and K['q'][0] == 4
-        assert len(K['s']) == 0
+        self.assertEqual(offset, 0.)
+        self.assertEqual(K['f'], 0)
+        self.assertEqual(K['l'], 1)
+        self.assertEqual(len(K['q']), 1)
+        self.assertEqual(K['q'][0], 4)
+        self.assertEqual(len(K['s']), 0)
 
-        assert np.allclose(A, np.array([[2, 0, 0, 0, 4],
+        self.assertTrue(np.allclose(A, np.array([[2, 0, 0, 0, 4],
                                         [0, 0, 1, 0, 0],
-                                        [0, 0, 2, 0, 1]])), "A was {0}".format(A)
-        assert np.allclose(b, np.array([[1.],
+                                        [0, 0, 2, 0, 1]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(b, np.array([[1.],
                                         [-2.],
-                                        [-4.]])), "b was {0}".format(b)
-        assert np.allclose(c, np.array([[1., 0., 3., 4., 5.]])), "c was {0}".format(c)
+                                        [-4.]])), "b was {0}".format(b))
+        self.assertTrue(np.allclose(c, np.array([[1., 0., 3., 4., 5.]])), "c was {0}".format(c))
 
 
 class TestSWHelpers(unittest.TestCase):
