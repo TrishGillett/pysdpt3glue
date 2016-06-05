@@ -50,17 +50,18 @@ class TestSlackSimplification(unittest.TestCase):
         self.assertEqual(len(K['q']), 0)
         self.assertEqual(len(K['s']), 0)
 
-        self.assertTrue(np.allclose(A, np.array([[1, 0, 0, 1],
-                                        [0, 1, 0, 0],
-                                        [0, 0, 1, 0],
-                                        [0, 0, 0, -1]])), "A was {0}".format(A))
-        self.assertTrue(np.allclose(b, np.array([[1.],
-                                        [-8.],
-                                        [-4.],
-                                        [5.]])), "b was {0}".format(b))
-        self.assertTrue(
-            np.allclose(c, np.array([[1., 2., 4., 5.]])), "c was {0}".format(c))
-
+        self.assertTrue(np.allclose(
+            A, np.array([[1, 0, 0, 1],
+                         [0, 1, 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 0, 0, -1]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(
+            b, np.array([[1.],
+                         [-8.],
+                         [-4.],
+                         [5.]])), "b was {0}".format(b))
+        self.assertTrue(np.allclose(
+            c, np.array([[1., 2., 4., 5.]])), "c was {0}".format(c))
 
 
 class TestFreeSimplification(unittest.TestCase):
@@ -97,12 +98,14 @@ class TestFreeSimplification(unittest.TestCase):
         self.assertEqual(len(K['s']), 1)
         self.assertEqual(K['s'][0], 2)
 
-        self.assertTrue(np.allclose(A, np.array([[2., 0., 0.5, 0.5, 0.],
-                                        [1., 0., 0.5, 0.5, 1.]])), "A was {0}".format(A))
-        self.assertTrue(np.allclose(b, np.array([[0.],
-                                        [0.]])), "b was {0}".format(b))
-        self.assertTrue(np.allclose(c, np.array([[5., 7., 8.5, 8.5, 10.]])), "c was {0}".format(c))
-
+        self.assertTrue(np.allclose(
+            A, np.array([[2., 0., 0.5, 0.5, 0.],
+                         [1., 0., 0.5, 0.5, 1.]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(
+            b, np.array([[0.],
+                         [0.]])), "b was {0}".format(b))
+        self.assertTrue(np.allclose(
+            c, np.array([[5., 7., 8.5, 8.5, 10.]])), "c was {0}".format(c))
 
     def test_case_zero_6(self):
         '''
@@ -119,9 +122,12 @@ class TestFreeSimplification(unittest.TestCase):
         self.assertEqual(len(K['s']), 1)
         self.assertEqual(K['s'][0], 2)
 
-        self.assertTrue(np.allclose(A, np.array([[0., 0., 0., 0., 0.25, 0.25, 1.]])), "A was {0}".format(A))
-        self.assertTrue(np.allclose(b, np.array([[0.]])), "b was {0}".format(b))
-        self.assertTrue(np.allclose(c, np.array([[4., 5., 6., 7., 7.25, 7.25, 10.]])), "c was {0}".format(c))
+        self.assertTrue(np.allclose(
+            A, np.array([[0., 0., 0., 0., 0.25, 0.25, 1.]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(
+            b, np.array([[0.]])), "b was {0}".format(b))
+        self.assertTrue(np.allclose(
+            c, np.array([[4., 5., 6., 7., 7.25, 7.25, 10.]])), "c was {0}".format(c))
 
 
 class TestQSimplification(unittest.TestCase):
@@ -133,8 +139,10 @@ class TestQSimplification(unittest.TestCase):
         '''
         Set up the data for a problem with 3 vars in an SOC which are not used
         in other constraints.
-        The 2nd col of A is zero but the var isn't deletable because it's the SOC's 't' var
-        The 4th col of A is zero but the var isn't deletable because it's used in the objective
+        The 2nd col of A is zero but the var isn't deletable because it's the
+        SOC's 't' var
+        The 4th col of A is zero but the var isn't deletable because it's used
+        in the objective
         The 6th col of A is zero and the var is deletable.
         '''
         self.c = 1.*np.array([1, 0, 3, 4, 5, 0]).reshape(1, 6)
@@ -162,13 +170,16 @@ class TestQSimplification(unittest.TestCase):
         self.assertEqual(K['q'][0], 4)
         self.assertEqual(len(K['s']), 0)
 
-        self.assertTrue(np.allclose(A, np.array([[2, 0, 0, 0, 4],
-                                        [0, 0, 1, 0, 0],
-                                        [0, 0, 2, 0, 1]])), "A was {0}".format(A))
-        self.assertTrue(np.allclose(b, np.array([[1.],
-                                        [-2.],
-                                        [-4.]])), "b was {0}".format(b))
-        self.assertTrue(np.allclose(c, np.array([[1., 0., 3., 4., 5.]])), "c was {0}".format(c))
+        self.assertTrue(np.allclose(
+            A, np.array([[2, 0, 0, 0, 4],
+                         [0, 0, 1, 0, 0],
+                         [0, 0, 2, 0, 1]])), "A was {0}".format(A))
+        self.assertTrue(np.allclose(
+            b, np.array([[1.],
+                         [-2.],
+                         [-4.]])), "b was {0}".format(b))
+        self.assertTrue(np.allclose(
+            c, np.array([[1., 0., 3., 4., 5.]])), "c was {0}".format(c))
 
 
 class TestSWHelpers(unittest.TestCase):
@@ -181,25 +192,23 @@ class TestSWHelpers(unittest.TestCase):
         Test that our sparsify_tall_mat method gets the same result as normal
         sparsification.
         '''
-        M = np.random.random(size=(1000,1000))
+        M = np.random.random(size=(1000, 1000))
         M1 = sw.sparsify_tall_mat(M, block_height=5)
         M2 = scipy.sparse.coo_matrix(M)
-        self.assertEqual((M1!=M2).nnz, 0)
+        self.assertEqual((M1 != M2).nnz, 0)
 
     def test_clean_K_dims(self):
         '''
         Test that the clean_K_dims method changes all integer components of K to floats
         '''
         K = sw.clean_K_dims({'d': 7, 'p': [4], 'q': [3, 5]})
-        for key in K:
-            self.assertIsInstance(K['p'], list)
-            self.assertIsInstance(K['q'], list)
+        # for key in K:
+        self.assertIsInstance(K['p'], list)
+        self.assertIsInstance(K['q'], list)
 
-            self.assertIsInstance(K['d'], (np.float32, np.float64, float))
-            self.assertIsInstance(K['p'][0], (np.float32, np.float64, float))
-            self.assertIsInstance(K['q'][1], (np.float32, np.float64, float))
-
-
+        self.assertIsInstance(K['d'], (np.float32, np.float64, float))
+        self.assertIsInstance(K['p'][0], (np.float32, np.float64, float))
+        self.assertIsInstance(K['q'][1], (np.float32, np.float64, float))
 
 
 if __name__ == '__main__':

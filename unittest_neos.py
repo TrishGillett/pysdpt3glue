@@ -73,7 +73,6 @@ class TestSimpleNEOSSolve(unittest.TestCase):
 
 
 
-
 class TestBlackbox(unittest.TestCase):
     '''
     Test the overall process from start to finish
@@ -118,7 +117,6 @@ class TestBlackbox(unittest.TestCase):
                                          output_target=output_target)
         self.assertAlmostEqual(result['primal_z'], -0.978, places=2)
 
-
     @unittest.expectedFailure
     def test_max(self):
         '''
@@ -143,8 +141,6 @@ class TestBlackbox(unittest.TestCase):
         # is an expected failure until we figure out how to tell from the cvxpy
         # problem whether it's min or max.
         self.assertAlmostEqual(result['primal_z'], 0.872, places=2)
-
-
 
 
 if __name__ == '__main__':
