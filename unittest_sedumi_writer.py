@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr  7 16:22:17 2016
@@ -188,11 +189,11 @@ class TestSWHelpers(unittest.TestCase):
         for key in K:
             self.assertIsInstance(K['p'], list)
             self.assertIsInstance(K['q'], list)
-            
+
             self.assertIsInstance(K['d'], (np.float32, np.float64, float))
             self.assertIsInstance(K['p'][0], (np.float32, np.float64, float))
             self.assertIsInstance(K['q'][1], (np.float32, np.float64, float))
-            
+
 
 
 
