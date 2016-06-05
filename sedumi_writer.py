@@ -154,10 +154,10 @@ def make_sedumi_format_problem(problem_data, simplify=True):
 
 def symmetrize_sedumi_model(A, b, c, K):
     '''
-    
+    Symmetrize sedumi model.
     '''
     colstart = K['f'] + K['l'] + sum(K['q'])
-    
+
     for s in K['s']:
         for i in range(s):
             for j in range(i+1, s):
@@ -186,9 +186,11 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
               the simplified problem in order to make it equivalent.  With
               allow_nonzero_b, offset will be 0.
     '''
-    n_free = K['f'] # the first n_free variables will be eligible for any kind of elimination
-    n_nonneg = K['l'] # the next n_nonneg variables will be eligible for only the simplest
-                      # substitution aij*xj=bi and only in the case where bi/aij >=0.
+    n_free = K['f'] # the first n_free variables will be eligible for any kind
+                    # of elimination
+    n_nonneg = K['l'] # the next n_nonneg variables will be eligible for only
+                      # the simplest substitution aij*xj=bi and only in the case
+                      # where bi/aij >=0.
     n_vars = c.size
     n_ctr = b.size
 
@@ -225,7 +227,8 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
             bk = b[ctr_k, 0]
             factor = 1.*bk/aki
 
-            # Akixi (optionally + Akjxj) = bk case, eliminate xi using xi = (Akj/Aki) - (bk/Aki)*x_j
+            # Akixi (optionally + Akjxj) = bk case, eliminate xi using
+            # xi = (Akj/Aki) - (bk/Aki)*x_j
             b[:, 0] += -factor*A[:, i]
             offset += factor*c[0, i]
 
@@ -236,7 +239,8 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
                 A[:, j] += -factor*A[:, i]
                 c[0, j] += -factor*c[0, i]
 
-            # zero out the coefficients of var i to make sure it isn't chosen for elimination again
+            # zero out the coefficients of var i to make sure it isn't chosen
+            # for elimination again
             A[:, i] *= 0.
             c[0, i] *= 0.
 
@@ -259,9 +263,10 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
         else:
             cols_to_keep.append(col)
 
-    # SOC vars eliminatable iff they're not the first var of their vector and they're unused in any ctrs.
+    # SOC vars eliminatable iff they're not the first var of their vector and
+    # they're unused in any ctrs.
     col_start = n_free + n_nonneg
-    
+
     for i, q_size, in enumerate(K['q']):
         cols_to_keep.append(col_start)
         for col in range(col_start + 1, col_start + q_size):
@@ -273,7 +278,7 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
 
     # All SDP vars kept
     cols_to_keep += range(col_start, n_vars)
-    
+
     # Symmetrize the use of PSD matrix variables.  We do this now because it might
     # zero out some additional ctrs which we'll check for next.
     A, b, c, K = symmetrize_sedumi_model(A, b, c, K)
@@ -286,7 +291,8 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
         if b[row, 0] != 0 or abs(A[row, :]).any():
             rows_to_keep.append(row)
 #==============================================================================
-#    SIMPLIFICATION STEP PART TWO: construct final matrices with only the rows/cols we want
+#   SIMPLIFICATION STEP PART TWO: construct final matrices with only
+#     the rows/cols we want
 #==============================================================================
     # new downsized problem
     A = A[np.ix_(rows_to_keep, cols_to_keep)]
@@ -335,7 +341,8 @@ def check_eliminatibility(g, h, n_elig=None, allow_nonzero_b=False):
             else:
                 return None, None # the second of three or more nonzero coefficients
 
-    # If nothing's been returned yet, it's because all the eliminatible vars' coeffs are zero.
+    # If nothing's been returned yet, it's because all the eliminatible
+    # vars' coeffs are zero.
     return None, None
 
 
@@ -350,4 +357,3 @@ def sparsify_tall_mat(M, block_height=1000):
         spmat_collector += [scipy.sparse.coo_matrix(curr_block.astype('d'))]
         i += 1
     return scipy.sparse.construct.vstack(spmat_collector)
-
