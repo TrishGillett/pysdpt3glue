@@ -98,8 +98,8 @@ def extract_prop_dict(msg):
     for key in keylist.values():
         result_dict[key] = None
 
-    line_pattern = re.compile('\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
-    phrase_pattern = re.compile('[\w\d\.\-+()][ \w\d\.\-+()]*')
+    line_pattern = re.compile(r'\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
+    phrase_pattern = re.compile(r'[\w\d\.\-+()][ \w\d\.\-+()]*')
 
     line_list = line_pattern.findall(msg)
     for line in line_list:
@@ -119,7 +119,7 @@ def extract_X(msg):
     '''
     # First pull out the definitions.  Each starts with 'X{numbers} ='
     # and we'll keep grabbing text until we hit any of the characters >, <, *, or X
-    var_pattern = re.compile('X\{[\d]*\} =[^><\*X]*')
+    var_pattern = re.compile(r'X\{[\d]*\} =[^><\*X]*')
     var_list = var_pattern.findall(msg)
 
     # Xlist will hold the solution variables or matrices
@@ -140,14 +140,14 @@ def extract_X(msg):
             chunk_list = chunk_pattern.findall(Xmsg)
 
             # Use regular expressions to split the data into header parts and data parts
-            header = re.compile('Columns* [\d]+[ through [\d]+]?')
+            header = re.compile(r'Columns* [\d]+[ through [\d]+]?')
             header_list = header.findall(Xmsg)
             chunk_list = header.split(Xmsg)[1:] # drop the first, which is ''
             assert len(header_list) == len(chunk_list)
 
             # Find out how many columns the matrix has by grabbing the last column number
             # from the last header
-            int_pattern = re.compile('\d[\d]*')
+            int_pattern = re.compile(r'\d[\d]*')
             int_list = int_pattern.findall(header_list[-1])
             cols = int(int_list[-1])
             # We'll count rows and initialize the matrix during the processing of
@@ -173,7 +173,7 @@ def extract_X(msg):
 
                 # Plug the row's data into the matrix
                 for row, line in enumerate(chunk_lines):
-                    for k, item in enumerate(re.split('\s+', line)):
+                    for k, item in enumerate(re.split(r'\s+', line)):
                         Xlist[i][row, col_start+k] = float(item)
             print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
 
@@ -191,7 +191,7 @@ def extract_X(msg):
 
             # Plug the row's data into the matrix
             for row, line in enumerate(Xmsg_lines):
-                for k, item in enumerate(re.split('\s+', line)):
+                for k, item in enumerate(re.split(r'\s+', line)):
                     Xlist[i][row, k] = float(item)
             print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
 
