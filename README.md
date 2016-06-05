@@ -1,5 +1,7 @@
 # py-sdpt3-glue
-<a href="https://codeclimate.com/github/discardthree/py-sdpt3-glue"><img src="https://codeclimate.com/github/discardthree/py-sdpt3-glue/badges/gpa.svg" /></a>
+[![Code Climate](https://codeclimate.com/github/discardthree/py-sdpt3-glue/badges/gpa.svg)](https://codeclimate.com/github/discardthree/py-sdpt3-glue)
+[![Build Status](https://travis-ci.org/discardthree/PySDPT3glue.svg?branch=master)](https://travis-ci.org/discardthree/PySDPT3glue)
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
 Glue code for solving Cvxpy SDP problems using Matlab's SDPT3.
 This package is for you if:
