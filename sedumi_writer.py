@@ -53,6 +53,7 @@ def write_sedumi_to_mat(A, b, c, K, target):
 
     scipy.io.savemat(target, {'A': A, 'b': b, 'c': c, 'K': K})
 
+
 def clean_K_dims(K):
     '''
     Matlab requires the dimensions to be given in floating point numbers,
@@ -67,7 +68,6 @@ def clean_K_dims(K):
         else:
             K[p] = 1.*K[p]
     return K
-
 
 
 def problem_data_prep(problem_data):
@@ -171,6 +171,7 @@ def symmetrize_sedumi_model(A, b, c, K):
                 c[0, jicol] = averaged_c
         colstart + s**2
     return A, b, c, K
+
 
 def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
     '''
