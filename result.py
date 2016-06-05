@@ -217,7 +217,7 @@ def handle_msg_item(x):
             if int(x) == x:
                 x = int(x)
             return x
-        except:
+        except (TypeError, ValueError):
             pass
     return x
 
