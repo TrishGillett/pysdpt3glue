@@ -4,7 +4,6 @@ Created on Thu Oct 01 01:29:40 2015
 
 @author: Trish
 """
-
 import re
 from numpy import zeros
 
@@ -53,13 +52,11 @@ def can_use_msg(msg):
     return msg is not None and "SDPT3: Infeasible path-following algorithms" in msg
 
 
-
 def extract_prop_dict(msg):
     '''
     Given the output message from running SDPT3solve.m, this function
     constructs and returns a dictionary of basic solve result information.
     '''
-
     result_dict = {}
 
     # the key is what we look for in the SDPT3 message output, the value is
@@ -76,8 +73,8 @@ def extract_prop_dict(msg):
                'CPU time per iteration': 'solve_time_per_iter',
                'termination code': 'status_num'}
 
-    for key in keylist:
-        result_dict[keylist[key]] = None
+    for key in keylist.values():
+        result_dict[key] = None
 
     line_pattern = re.compile('\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
     phrase_pattern = re.compile('[\w\d\.\-+()][ \w\d\.\-+()]*')
@@ -88,11 +85,9 @@ def extract_prop_dict(msg):
         key = line_parts[0].rstrip().replace("dual  ", "dual")
         val = handle_msg_item(line_parts[-1].strip())
 
-        if key in keylist:
-            if keylist[key] is not None:
-                result_dict[keylist[key]] = val
+        if key in keylist and keylist[key] is not None:
+            result_dict[keylist[key]] = val
     return result_dict
-
 
 
 def extract_X(msg):
@@ -186,14 +181,12 @@ def extract_X(msg):
     return Xlist
 
 
-
 def handle_msg_item(x):
     '''
     A function that takes a string x and returns it's interpretation as an int,
     float, or string in that order of preference.  If x is None, None is
     returned.
     '''
-
     if len(x) == 0:
         return None
     else:
@@ -207,14 +200,12 @@ def handle_msg_item(x):
     return x
 
 
-
 def get_verb_status(status_num):
     '''
     A function that takes an SDPT3 numerical termination code as input and
     returns a phrase (string) explaining the implications of the termination
     code.
     '''
-
     sdpt3_pos_status_map_verb = ['max(relative gap,infeasibility) < gaptol (OPTIMAL)',
                                  'primal problem is suspected to be infeasible',
                                  'dual problem is suspected to be infeasible',
@@ -236,4 +227,3 @@ def get_verb_status(status_num):
         return sdpt3_pos_status_map_verb[status_num]
     else:
         return sdpt3_neg_status_map_verb[-status_num]
-
