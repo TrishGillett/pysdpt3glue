@@ -15,9 +15,9 @@ import numpy as np
 
 import cvxpy
 
-import solve as slv
-import sedumi_writer as sw
-import result as res
+import sdpt3glue.solve as slv
+import sdpt3glue.sedumi_writer as sw
+import sdpt3glue.result as res
 
 
 class TestSimpleNEOSSolve(unittest.TestCase):

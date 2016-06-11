@@ -12,7 +12,7 @@ import unittest
 import numpy as np
 import scipy
 
-import sedumi_writer as sw
+import sdpt3glue.sedumi_writer as sw
 
 
 class TestSlackSimplification(unittest.TestCase):
