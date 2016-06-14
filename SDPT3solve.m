@@ -24,4 +24,4 @@ end
 %     disp(num2str(Z{i},12));
 % end
 
-quit;
+end
