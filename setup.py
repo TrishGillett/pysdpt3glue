@@ -27,6 +27,10 @@ setup(
     url="https://github.com/discardthree/PySDPT3glue",
     packages = find_packages(exclude=["tests"]),
     install_requires=_load_requires_from_file("requirements.txt"),
+    classifiers=[
+        "Intended Audience :: Science/Research",
+        "Topic :: Scientific/Engineering :: Mathematics"
+    ],
     test_suite = 'tests.suite',
     license="MIT"
 )
