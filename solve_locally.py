@@ -4,10 +4,11 @@ Methods that run code on Matlab or Octave.
 '''
 
 import os
+import os.path
 
+import shutil
 import subprocess
-import shlex
-import warnings
+import tempfile
 
 
 class MatlabCallError(Exception):
@@ -16,18 +17,19 @@ class MatlabCallError(Exception):
     '''
     pass
 
+
 class OctaveCallError(Exception):
     '''
     This error is raised when an error occurs during a subprocess call to Octave.
     '''
     pass
 
+
 class SubprocessCallError(Exception):
     '''
     This error is raised when an error occurs during a subprocess call.
     '''
     pass
-
 
 
 def matlab_solve(matfile_target, output_target, discard_matfile=True):
@@ -41,7 +43,8 @@ def matlab_solve(matfile_target, output_target, discard_matfile=True):
         A dictionary with solve result information.
     '''
     # Generating the .mat file
-    run_command = "matlab -r \"SDPT3solve('{0}')\" -nodisplay -nojvm".format(matfile_target)
+    run_command = "matlab -r \"SDPT3solve('{0}')\" -nodisplay -nojvm".format(
+        matfile_target)
     try:
         msg = run_command_get_output(run_command, output_target)
     except SubprocessCallError, e:
@@ -55,7 +58,7 @@ def matlab_solve(matfile_target, output_target, discard_matfile=True):
     return msg
 
 
-def octave_solve(matfile_target, output_target, discard_matfile=True):
+def octave_solve(matfile_target, output_target, discard_matfile=True, cmd="octave"):
     '''
     The .mat is loaded into octave and the problem is solved with SDPT3.
     Inputs:
@@ -66,15 +69,22 @@ def octave_solve(matfile_target, output_target, discard_matfile=True):
         A dictionary with solve result information.
     '''
     # Generating the .mat file
-    warnings.warn("NOTE: I'm not sure what options are needed to run Octave without "
-                  "the gui, please come comment on\n"
-                  "https://github.com/discardthree/py-sdpt3-glue/issues/3"
-                  "to let me know how this worked.")
-    run_command = "octave -r \"SDPT3solve('{0}')\" ".format(matfile_target)
-    try:
-        msg = run_command_get_output(run_command, output_target)
-    except SubprocessCallError, e:
-        raise OctaveCallError(e)
+    with tempfile.NamedTemporaryFile(
+            suffix=".m", dir=os.path.dirname(matfile_target)) as runner:
+
+        with open("SDPT3solve.m") as lib:
+            shutil.copyfileobj(lib, runner)
+
+        runner.write("SDPT3solve('{0}');\n".format(
+            os.path.relpath(matfile_target)))
+        runner.flush()
+
+        run_command = "{cmd} {script}".format(
+            cmd=cmd, script=os.path.relpath(runner.name))
+        try:
+            msg = run_command_get_output(run_command, output_target)
+        except SubprocessCallError, e:
+            raise OctaveCallError(e)
 
     # Cleanup
     if discard_matfile:
@@ -84,18 +94,16 @@ def octave_solve(matfile_target, output_target, discard_matfile=True):
     return msg
 
 
-
 def run_command_get_output(run_command, output_target):
     '''
     Runs the command run_command, saves the output to output_target, and
     returns the output log.
     '''
-    # Performing the Matlab solve
-    run_command += " > {0};".format(output_target)
-    tokenized_command = shlex.split(run_command)
     try:
-        proc = subprocess.Popen(tokenized_command)
-        proc.wait()
+        with open(output_target, "w") as fp:
+            proc = subprocess.Popen(run_command, shell=True, stdout=fp)
+            proc.communicate()
+
     except:
         err_msg = ("Something went wrong with the command. The command "
                    "run was:\n{0}\nPlease check that the command looks good "
