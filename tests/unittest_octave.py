@@ -45,7 +45,8 @@ class TestSimpleOctaveSolve(unittest.TestCase):
         test if we can do submission and result extraction in a case where we
         know the .mat isn't the problem.
         '''
-        matfile_path = os.path.join('test_data', 'hamming_7_5_6.mat')
+        matfile_path = os.path.join(
+            os.path.dirname(__file__), 'data/hamming_7_5_6.mat')
         output_path = os.path.join(self.temp_folder, 'hamming_out.txt')
         assert os.path.exists(matfile_path), \
             "There's nothing at the path " + matfile_path

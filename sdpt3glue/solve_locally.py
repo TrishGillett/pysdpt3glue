@@ -71,9 +71,9 @@ def octave_solve(matfile_target, output_target, discard_matfile=True, cmd="octav
     '''
     # Generating the .mat file
     with tempfile.NamedTemporaryFile(
-            suffix=".m", dir=os.path.dirname(matfile_target)) as runner:
+        suffix=".m", dir=os.path.dirname(matfile_target)) as runner:
 
-        with open("SDPT3solve.m") as lib:
+        with open(os.path.join(os.path.dirname(__file__), "SDPT3solve.m")) as lib:
             shutil.copyfileobj(lib, runner)
 
         runner.write("SDPT3solve('{0}');\n".format(
@@ -102,7 +102,9 @@ def run_command_get_output(run_command, output_target):
     '''
     try:
         with open(output_target, "w") as fp:
-            proc = subprocess.Popen(run_command, shell=True, stdout=fp)
+            proc = subprocess.Popen(
+                run_command, shell=True, stdout=fp,
+                cwd=os.path.join(os.path.dirname(__file__)))
             proc.communicate()
 
     except:
