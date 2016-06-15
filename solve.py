@@ -26,7 +26,7 @@ def check_output_target(mode, output_target):
             "Something already exists at output_target, we won't overwrite it."
 
 
-def sdpt3_solve_problem(problem, mode, matfile_target, output_target=None, discard_matfile=True):
+def sdpt3_solve_problem(problem, mode, matfile_target, output_target=None, discard_matfile=True, **kwargs):
     '''
     A wrapper function that takes a cvxpy problem, makes the .mat file, solves
     it by NEOS or a local Matlab/SDPT3 installation, then constructs the result,
@@ -43,10 +43,11 @@ def sdpt3_solve_problem(problem, mode, matfile_target, output_target=None, disca
     return sdpt3_solve_mat(matfile_target,
                            mode,
                            output_target=output_target,
-                           discard_matfile=discard_matfile)
+                           discard_matfile=discard_matfile,
+                           **kwargs)
 
 
-def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True):
+def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True, **kwargs):
     '''
     A wrapper function that takes the path of a .mat file, solves the Sedumi
     problem it contains with NEOS or a local Matlab/SDPT3 installation, then
@@ -64,7 +65,8 @@ def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True
     elif mode == 'octave':
         msg = ls.octave_solve(matfile_path,
                               output_target,
-                              discard_matfile=discard_matfile)
+                              discard_matfile=discard_matfile,
+                              **kwargs)
     elif mode == 'neos':
         import solve_neos as ns
         msg = ns.neos_solve(matfile_path,
