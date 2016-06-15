@@ -17,20 +17,21 @@ def _load_requires_from_file(filepath):
 
 
 setup(
-    name = 'py-sdpt3-glue',
-    version = '0.1.0',
+    name='py-sdpt3-glue',
+    version='0.1.0',
     description=(
         'Glue code for solving semidefinite programs '
         'in Cvxpy format using the SDPT3 package for Matlab.'
     ),
     author="Trish Gillett-Kawamoto",
     url="https://github.com/discardthree/PySDPT3glue",
-    packages = find_packages(exclude=["tests"]),
+    packages=find_packages(exclude=["tests"]),
+    package_data={'sdpt3glue': ['*.m']},
     install_requires=_load_requires_from_file("requirements.txt"),
     classifiers=[
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Mathematics"
     ],
-    test_suite = 'tests.suite',
+    test_suite='tests.suite',
     license="MIT"
 )
