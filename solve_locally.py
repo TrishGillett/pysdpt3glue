@@ -65,6 +65,7 @@ def octave_solve(matfile_target, output_target, discard_matfile=True, cmd="octav
       matfile_target: the path to the .mat file containing the Sedumi format problem data.
       output_target: the path we will save the output log message to.
       discard_matfile: if True, deletes the .mat file after the solve finishes.
+      cmd: command name for octave, which will be used for alternative command.
     Output:
         A dictionary with solve result information.
     '''
