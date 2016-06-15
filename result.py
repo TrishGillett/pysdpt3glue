@@ -191,7 +191,7 @@ def extract_X(msg):
 
             # Plug the row's data into the matrix
             for row, line in enumerate(Xmsg_lines):
-                for k, item in enumerate(re.split(r'\s+', line)):
+                for k, item in enumerate(re.split(r'\s+', line.strip())):
                     Xlist[i][row, k] = float(item)
             print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
 
