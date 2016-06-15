@@ -38,7 +38,8 @@ def make_result_dict(msg):
     what information we can.  If the dict doesn't at least contain a status_num and
     status_verb, you should check the log manually and see what went wrong.
     '''
-    assert can_use_msg(msg), "Stopping, the message is not properly formed: " + msg
+    assert can_use_msg(
+        msg), "Stopping, the message is not properly formed: " + msg
     result_dict = extract_prop_dict(msg)
     result_dict['Xvars'] = extract_X(msg)
     result_dict['status_verb'] = get_verb_status(result_dict['status_num'])
@@ -55,7 +56,7 @@ def make_result_summary(result):
         "Dual value (bound): {0[dual_z]} (infeasibility: {0[rel_dual_feas]})"
         "Relative gap: {0[rel_gap]}"
         "Solve time: {1} s"
-    ).format(result, 0.001*round(1000*result['solve_time']))
+    ).format(result, 0.001 * round(1000 * result['solve_time']))
 
 
 def print_summary(result):
@@ -98,7 +99,8 @@ def extract_prop_dict(msg):
     for key in keylist.values():
         result_dict[key] = None
 
-    line_pattern = re.compile(r'\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
+    line_pattern = re.compile(
+        r'\w[ \w:=.()]*[ \<\>]*=[ <>]*[ \d\.\-+e]*[\d\.\-+e]')
     phrase_pattern = re.compile(r'[\w\d\.\-+()][ \w\d\.\-+()]*')
 
     line_list = line_pattern.findall(msg)
@@ -118,12 +120,13 @@ def extract_X(msg):
     matrix from the printed output and return it.
     '''
     # First pull out the definitions.  Each starts with 'X{numbers} ='
-    # and we'll keep grabbing text until we hit any of the characters >, <, *, or X
+    # and we'll keep grabbing text until we hit any of the characters >, <, *,
+    # or X
     var_pattern = re.compile(r'X\{[\d]*\} =[^><\*X]*')
     var_list = var_pattern.findall(msg)
 
     # Xlist will hold the solution variables or matrices
-    Xlist = [None]*len(var_list)
+    Xlist = [None] * len(var_list)
 
     for i, Xmsg in enumerate(var_list):
         # Drop the "X{something} =" and strip extra whitespace
@@ -139,10 +142,11 @@ def extract_X(msg):
             chunk_pattern = re.compile('Column[^C]*')
             chunk_list = chunk_pattern.findall(Xmsg)
 
-            # Use regular expressions to split the data into header parts and data parts
+            # Use regular expressions to split the data into header parts and
+            # data parts
             header = re.compile(r'Columns* [\d]+[ through [\d]+]?')
             header_list = header.findall(Xmsg)
-            chunk_list = header.split(Xmsg)[1:] # drop the first, which is ''
+            chunk_list = header.split(Xmsg)[1:]  # drop the first, which is ''
             assert len(header_list) == len(chunk_list)
 
             # Find out how many columns the matrix has by grabbing the last column number
@@ -157,7 +161,8 @@ def extract_X(msg):
             # the columns of Xlist[i] which are indicated by the header.
             for header, chunk in zip(header_list, chunk_list):
                 # Grab the column numbers from the header, note the first one. It's
-                # the start column we'll use to place the chunk's data in the matrix.
+                # the start column we'll use to place the chunk's data in the
+                # matrix.
                 int_list = [int(x) for x in int_pattern.findall(header)]
                 col_start = int_list[0] - 1
 
@@ -174,11 +179,12 @@ def extract_X(msg):
                 # Plug the row's data into the matrix
                 for row, line in enumerate(chunk_lines):
                     for k, item in enumerate(re.split(r'\s+', line)):
-                        Xlist[i][row, col_start+k] = float(item)
+                        Xlist[i][row, col_start + k] = float(item)
             print "Imported X[{0}] as a matrix with shape {1}.".format(i, Xlist[i].shape)
 
         elif ' ' in Xmsg or '\n' in Xmsg:
-            # Otherwise if it has spaces or line breaks it's a non-chunked matrix
+            # Otherwise if it has spaces or line breaks it's a non-chunked
+            # matrix
             Xmsg = Xmsg.strip()
             Xmsg = re.sub(' +', ' ', Xmsg)
             Xmsg = re.sub(' *\n *', '\n', Xmsg)

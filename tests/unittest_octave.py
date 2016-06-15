@@ -51,8 +51,8 @@ class TestSimpleOctaveSolve(unittest.TestCase):
         assert os.path.exists(matfile_path), \
             "There's nothing at the path " + matfile_path
         result = sdpt3glue.sdpt3_solve_mat(
-            matfile_path, 'octave', output_target=output_path,
-            discard_matfile=False, cmd=OCTAVE_CMD)
+            matfile_path, sdpt3glue.OCTAVE,
+            output_target=output_path, discard_matfile=False, cmd=OCTAVE_CMD)
 
         self.assertAlmostEqual(result['primal_z'], -42.6666661, places=2)
 
@@ -71,9 +71,10 @@ class TestSimpleOctaveSolve(unittest.TestCase):
 
         sdpt3glue.write_sedumi_to_mat(A, b, c, K, matfile_target)
         result = sdpt3glue.sdpt3_solve_mat(
-            matfile_target, 'octave',
+            matfile_target, sdpt3glue.OCTAVE,
             output_target=output_target, cmd=OCTAVE_CMD)
         sdpt3glue.print_summary(result)
+
 
 
 class TestBlackbox(unittest.TestCase):
@@ -116,7 +117,7 @@ class TestBlackbox(unittest.TestCase):
         obj = cvxpy.Minimize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
         result = sdpt3glue.sdpt3_solve_problem(
-            problem, 'octave', matfile_target,
+            problem, sdpt3glue.OCTAVE, matfile_target,
             output_target=output_target, cmd=OCTAVE_CMD)
         self.assertAlmostEqual(result['primal_z'], -0.978, places=2)
 
@@ -136,7 +137,7 @@ class TestBlackbox(unittest.TestCase):
         obj = cvxpy.Maximize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
         result = sdpt3glue.sdpt3_solve_problem(
-            problem, 'octave', matfile_target,
+            problem, sdpt3glue.OCTAVE, matfile_target,
             output_target=output_target, cmd=OCTAVE_CMD)
         # The opt value of the max problem is ~0.871921, but when we retrieved
         # the cvxopt data it was flipped to be a min problem, so for now this

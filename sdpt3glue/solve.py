@@ -11,6 +11,12 @@ import sedumi_writer as sw
 import solve_locally as ls
 import result as res
 
+
+MATLAB = 'matlab'
+OCTAVE = 'octave'
+NEOS = 'neos'
+
+
 def check_output_target(mode, output_target):
     '''
     checks if the value of output_target is appropriate:
@@ -26,7 +32,9 @@ def check_output_target(mode, output_target):
             "Something already exists at output_target, we won't overwrite it."
 
 
-def sdpt3_solve_problem(problem, mode, matfile_target, output_target=None, discard_matfile=True, **kwargs):
+def sdpt3_solve_problem(
+        problem, mode, matfile_target,
+        output_target=None, discard_matfile=True, **kwargs):
     '''
     A wrapper function that takes a cvxpy problem, makes the .mat file, solves
     it by NEOS or a local Matlab/SDPT3 installation, then constructs the result,
@@ -47,7 +55,8 @@ def sdpt3_solve_problem(problem, mode, matfile_target, output_target=None, disca
                            **kwargs)
 
 
-def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True, **kwargs):
+def sdpt3_solve_mat(
+        matfile_path, mode, output_target=None, discard_matfile=True, **kwargs):
     '''
     A wrapper function that takes the path of a .mat file, solves the Sedumi
     problem it contains with NEOS or a local Matlab/SDPT3 installation, then
@@ -58,20 +67,21 @@ def sdpt3_solve_mat(matfile_path, mode, output_target=None, discard_matfile=True
 
     # Depending on the mode, solve the problem using a local Matlab+SDPT3
     # installation or on the NEOS server
-    if mode == 'matlab':
+    if mode == MATLAB:
         msg = ls.matlab_solve(matfile_path,
-                              output_target,
                               discard_matfile=discard_matfile)
-    elif mode == 'octave':
+    elif mode == OCTAVE:
         msg = ls.octave_solve(matfile_path,
-                              output_target,
                               discard_matfile=discard_matfile,
                               **kwargs)
-    elif mode == 'neos':
+    elif mode == NEOS:
         import solve_neos as ns
         msg = ns.neos_solve(matfile_path,
-                            output_target=output_target,
                             discard_matfile=discard_matfile)
+
+    if output_target:
+        with open(output_target, "w") as fp:
+            fp.write(msg)
 
     result = res.make_result_dict(msg)
     return result
