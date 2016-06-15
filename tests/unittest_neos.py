@@ -15,9 +15,7 @@ import numpy as np
 
 import cvxpy
 
-import solve as slv
-import sedumi_writer as sw
-import result as res
+import sdpt3glue
 
 
 class TestSimpleNEOSSolve(unittest.TestCase):
@@ -45,7 +43,7 @@ class TestSimpleNEOSSolve(unittest.TestCase):
         output_path = os.path.join(self.temp_folder, 'hamming_out.txt')
         assert os.path.exists(matfile_path), \
             "There's nothing at the path " + matfile_path
-        result = slv.sdpt3_solve_mat(matfile_path,
+        result = sdpt3glue.sdpt3_solve_mat(matfile_path,
                                      'neos',
                                      output_target=output_path,
                                      discard_matfile=False)
@@ -65,11 +63,11 @@ class TestSimpleNEOSSolve(unittest.TestCase):
         matfile_target = os.path.join(self.temp_folder, 'matfile.mat')
         output_target = os.path.join(self.temp_folder, 'output.txt')
 
-        sw.write_sedumi_to_mat(A, b, c, K, matfile_target)
-        result = slv.sdpt3_solve_mat(matfile_target,
+        sdpt3glue.write_sedumi_to_mat(A, b, c, K, matfile_target)
+        result = sdpt3glue.sdpt3_solve_mat(matfile_target,
                                      'neos',
                                      output_target=output_target)
-        res.print_summary(result)
+        sdpt3glue.print_summary(result)
 
 
 
@@ -111,7 +109,7 @@ class TestBlackbox(unittest.TestCase):
 
         obj = cvxpy.Minimize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
-        result = slv.sdpt3_solve_problem(problem,
+        result = sdpt3glue.sdpt3_solve_problem(problem,
                                          'neos',
                                          matfile_target,
                                          output_target=output_target)
@@ -132,7 +130,7 @@ class TestBlackbox(unittest.TestCase):
 
         obj = cvxpy.Maximize(self.X[0, 2])
         problem = cvxpy.Problem(obj, self.constraints)
-        result = slv.sdpt3_solve_problem(problem,
+        result = sdpt3glue.sdpt3_solve_problem(problem,
                                          'neos',
                                          matfile_target,
                                          output_target=output_target)

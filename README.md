@@ -21,7 +21,7 @@ The code is intended to work like this:
 import os
 
 from cvxpy import *
-import solve as slv
+import sdpt3glue.solve as slv
 
 def demo_example_cvxpy(folder, mode):
     '''
