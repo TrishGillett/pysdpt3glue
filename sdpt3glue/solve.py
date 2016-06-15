@@ -11,6 +11,12 @@ import sedumi_writer as sw
 import solve_locally as ls
 import result as res
 
+
+MATLAB = 'matlab'
+OCTAVE = 'octave'
+NEOS = 'neos'
+
+
 def check_output_target(mode, output_target):
     '''
     checks if the value of output_target is appropriate:
@@ -61,14 +67,14 @@ def sdpt3_solve_mat(
 
     # Depending on the mode, solve the problem using a local Matlab+SDPT3
     # installation or on the NEOS server
-    if mode == 'matlab':
+    if mode == MATLAB:
         msg = ls.matlab_solve(matfile_path,
                               discard_matfile=discard_matfile)
-    elif mode == 'octave':
+    elif mode == OCTAVE:
         msg = ls.octave_solve(matfile_path,
                               discard_matfile=discard_matfile,
                               **kwargs)
-    elif mode == 'neos':
+    elif mode == NEOS:
         import solve_neos as ns
         msg = ns.neos_solve(matfile_path,
                             discard_matfile=discard_matfile)
