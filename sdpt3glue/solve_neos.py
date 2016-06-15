@@ -33,9 +33,9 @@ def _print_fault(err, space=2):
       err: xmlrpclib.Fault error.
       space: Space size to be added before each message.
     """
-    print " " * space +  "A fault occurred"
-    print " " * space +  "Fault code: {0}".format(err.faultCode)
-    print " " * space +  "Fault string: {0}".format(err.faultString)
+    print " " * space + "A fault occurred"
+    print " " * space + "Fault code: {0}".format(err.faultCode)
+    print " " * space + "Fault string: {0}".format(err.faultString)
 
 
 def _print_protocol_error(err, space=2):
@@ -45,11 +45,11 @@ def _print_protocol_error(err, space=2):
       err: xmlrpclib.ProtocolError error.
       space: Space size to be added before each message.
     """
-    print " " * space +  "A protocol error occurred"
-    print " " * space +  "URL: {0}".format(err.url)
-    print " " * space +  "HTTP/HTTPS headers: {0}".format(err.headers)
-    print " " * space +  "Error code: {0}".format(err.errcode)
-    print " " * space +  "Error message: {0}".format(err.errmsg)
+    print " " * space + "A protocol error occurred"
+    print " " * space + "URL: {0}".format(err.url)
+    print " " * space + "HTTP/HTTPS headers: {0}".format(err.headers)
+    print " " * space + "Error code: {0}".format(err.errcode)
+    print " " * space + "Error message: {0}".format(err.errmsg)
 
 
 @contextlib.contextmanager
@@ -103,7 +103,8 @@ def neos_solve(
       NeosError: When an error occurs by using Neos server.
     '''
     if not os.path.exists(matfile_target):
-        raise ValueError("The matfile {0} doesn't exist".format(matfile_target))
+        raise ValueError(
+            "The matfile {0} doesn't exist".format(matfile_target))
     # any backslashes need to be doubly escaped for the web form
     matfile_target = matfile_target.replace('\\', '\\\\')
 
@@ -158,7 +159,7 @@ def extract_id_pwd(source):
     extracts and returns the strings for job ID and password
     '''
     start = source.find('Job#')
-    snippet = source[start:start+60]
+    snippet = source[start:start + 60]
     lines = snippet.split('\n')
 
     jobid_line = lines[0].strip().split()
@@ -213,6 +214,7 @@ class NeosInterface(object):
     methods which, for the time being, are designed with the solution of AMPL
     models in mind.
     """
+
     def __init__(self, neos_host=None, neos_port=None):
          # Go to xmlrpc and flip on __verbose if you are debugging
          # and want to see ALL xml-rpc communication
@@ -221,7 +223,8 @@ class NeosInterface(object):
         if not neos_port:
             neos_port = 3332
 
-        neos_url = "http://{host}:{port}".format(host=neos_host, port=neos_port)
+        neos_url = "http://{host}:{port}".format(
+            host=neos_host, port=neos_port)
         self.server = xmlrpclib.ServerProxy(neos_url)
 
     def track_and_return(self, jobid, pwd):

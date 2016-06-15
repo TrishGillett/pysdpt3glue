@@ -31,7 +31,6 @@ class SubprocessCallError(Exception):
     pass
 
 
-
 def matlab_solve(matfile_target, discard_matfile=True):
     '''
     The .mat is loaded into matlab and the problem is solved with SDPT3.
