@@ -51,6 +51,7 @@ clean:
 .PHONY: sphinx-apidoc
 sphinx-apidoc:
 	sphinx-apidoc -f -o source "../sdpt3glue/" -M
+	rm source/modules.rst
 
 .PHONY: html
 html: sphinx-apidoc
