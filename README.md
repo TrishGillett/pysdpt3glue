@@ -11,6 +11,9 @@ This project is listed under PyPI as [sdpt3glue](https://pypi.python.org/pypi/sd
 pip install sdpt3glue
 ```
 
+##Documentation:
+Documentation is hosted [here](http://pythonhosted.org/sdpt3glue), courtesy of the Python Software Foundation.
+
 ##Quick usage guide: 
 
 ### Problem set up
