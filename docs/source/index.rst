@@ -9,12 +9,13 @@ sdpt3glue
 The sdpt3glue package serves as glue code to allow Cvxpy semidefinite
 programming (SDP) problems to be solved using Matlab's SDPT3.
 
-
-Contents:
+Documentation table of contents:
+--------------------------------
 
 .. toctree::
    :maxdepth: 2
 
+   quickguide
    sdpt3glue
 
 
