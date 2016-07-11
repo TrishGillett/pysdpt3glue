@@ -1,4 +1,4 @@
-# py-sdpt3-glue
+# sdpt3glue
 [![Code Climate](https://codeclimate.com/github/discardthree/py-sdpt3-glue/badges/gpa.svg)](https://codeclimate.com/github/discardthree/py-sdpt3-glue)
 [![Build Status](https://travis-ci.org/discardthree/PySDPT3glue.svg?branch=master)](https://travis-ci.org/discardthree/PySDPT3glue)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
