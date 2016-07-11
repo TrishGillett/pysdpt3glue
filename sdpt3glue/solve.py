@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-Created on Fri Apr  8 01:23:57 2016
 
-@author: trish
 """
 
 import os.path

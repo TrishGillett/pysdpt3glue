@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-author: Trish Gillett (github.com/discardthree)
 Basic scraper/webdriver to submit an sdpt3 problem on the NEOS webpage.
-This version uses selenium because when I tried submitting problems of this
-type via XML-RPC, something went wrong.
-
-With gratitude to Estela Alvarez (github.com/supita) who gave a demo of
-webscraping at a Pyladies meeting.
+This version uses selenium because difficulties were encountered using XML-RPC
+for problems of this type.
 """
+
 import os
 import sys
 import contextlib
@@ -23,7 +19,7 @@ WEBDRIVERS = {
     "Firefox": webdriver.Firefox,
     "PhantomJS": webdriver.PhantomJS
 }
-""" Webdrivers to be tried to use. """
+""" Webdrivers to try using. """
 
 
 def _print_fault(err, space=2):
@@ -105,6 +101,7 @@ def neos_solve(
     if not os.path.exists(matfile_target):
         raise ValueError(
             "The matfile {0} doesn't exist".format(matfile_target))
+
     # any backslashes need to be doubly escaped for the web form
     matfile_target = matfile_target.replace('\\', '\\\\')
 
@@ -154,9 +151,14 @@ def neos_solve(
 def extract_id_pwd(source):
     '''
     Given a snippet of the form
+
+    .. code-block:: none
+
         Job#     : xxxxxxx
         Password : yyyyyyyy
+
     extracts and returns the strings for job ID and password
+
     '''
     start = source.find('Job#')
     snippet = source[start:start + 60]

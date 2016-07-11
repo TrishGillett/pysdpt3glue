@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Oct 01 01:29:40 2015
 
-@author: Trish
 """
+
 import re
 from numpy import zeros
 

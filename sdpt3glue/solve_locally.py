@@ -1,7 +1,8 @@
-#!/usr/bin/env python
 '''
-Methods that run code on Matlab or Octave.
+Methods that run code on a copy of Matlab or Octave installed on the user's
+machine.
 '''
+
 import os
 import os.path
 
@@ -34,10 +35,12 @@ class SubprocessCallError(Exception):
 def matlab_solve(matfile_target, discard_matfile=True):
     '''
     The .mat is loaded into matlab and the problem is solved with SDPT3.
-    Inputs:
-      matfile_target: the path to the .mat file containing the Sedumi format problem data.
-      discard_matfile: if True, deletes the .mat file after the solve finishes.
-    Output:
+
+    Args:
+        matfile_target: the path to the .mat file containing the Sedumi format problem data.
+        discard_matfile: if True, deletes the .mat file after the solve finishes.
+
+    Returns:
         A dictionary with solve result information.
     '''
     # Generating the .mat file
@@ -59,11 +62,13 @@ def matlab_solve(matfile_target, discard_matfile=True):
 def octave_solve(matfile_target, discard_matfile=True, cmd="octave"):
     '''
     The .mat is loaded into octave and the problem is solved with SDPT3.
-    Inputs:
-      matfile_target: the path to the .mat file containing the Sedumi format problem data.
-      discard_matfile: if True, deletes the .mat file after the solve finishes.
-      cmd: command name for octave, which will be used for alternative command.
-    Output:
+
+    Args:
+        matfile_target: the path to the .mat file containing the Sedumi format problem data.
+        discard_matfile: if True, deletes the .mat file after the solve finishes.
+        cmd: command name for octave, which will be used for alternative command.
+
+    Returns:
         A dictionary with solve result information.
     '''
     # Generating the .mat file

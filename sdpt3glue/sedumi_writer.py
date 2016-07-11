@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Mar 27 16:43:25 2014
-
-@author: Trish
-
-
 Functions which express problems in Sedumi format and export them as .mat files
 for Matlab
 """
@@ -19,10 +13,12 @@ from cvxopt import matrix as cvxmat
 
 def write_cvxpy_to_mat(problem_data, target, simplify=True):
     '''
-    Input:
+    Args:
         problem_data: As produced by applying get_problem_data['CVXOPT'] to a
         cvxpy problem.
+
     Returns: (None)
+
     Effect:
         Saves a .mat file containing the A, b, c, K that define the problem
         in Sedumi format to target (see http://plato.asu.edu/ftp/usrguide.pdf)
@@ -36,9 +32,10 @@ def write_cvxpy_to_mat(problem_data, target, simplify=True):
 
 def write_sedumi_to_mat(A, b, c, K, target):
     '''
-    Input:
+    Args:
         A, b, c, K for Sedumi format
         target: the path where we will save the .mat
+
     Effect:
         Saves a .mat file containing A, b, c, K to target
     '''
@@ -179,16 +176,23 @@ def symmetrize_sedumi_model(A, b, c, K):
 def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
     '''
     Tries to eliminate variables using a few simple strategies:
-        1. If a constraint is expressing Akixi = bk where variable xi is
-           a free variable, we can eliminate x.
-        2. If a constraint is expressing Akixi + Akjxj = bk where variable xi
-           is a free variable, we can eliminate x.
-    Input:    A, b, c, K: for a problem in Sedumi format
-              allow_nonzero_b: If False, only eliminate if bk = 0 is zero
-    Returns:  A, b, c, K: for the simplified problem.
-              offset: A constant which must be added to the optimal value of
-              the simplified problem in order to make it equivalent.  With
-              allow_nonzero_b, offset will be 0.
+
+    1. If a constraint is expressing :math:`A_{ki}x_i = b_k` where variable
+    :math:`x_i` is a free variable, we can eliminate :math:`x_i`.
+
+    2. If a constraint is expressing :math:`A_{ki}x_i + A_{kj}x_j = b_k`
+    where variable :math:`x_i` is a free variable, we can eliminate
+    :math:`x_i`.
+
+    Args:
+        A, b, c, K: for a problem in Sedumi format
+        allow_nonzero_b: If False, only eliminate if bk = 0 is zero
+
+    Returns:
+        A, b, c, K: for the simplified problem.
+        offset: A constant which must be added to the optimal value of the
+        simplified problem in order to make it equivalent.  With
+        allow_nonzero_b, offset will be 0.
     '''
     n_free = K['f']  # the first n_free variables will be eligible for any kind
     # of elimination
@@ -317,14 +321,18 @@ def simplify_sedumi_model(A, b, c, K, allow_nonzero_b=False):
 
 def check_eliminatibility(g, h, n_elig=None, allow_nonzero_b=False):
     '''
-    Tests if constraint gx = h fits one of the patterns:
-       1. ax_i = d
-       2. ax_i + bx_j = d
-    with the requirement that the x_i variable be one of the first n_elig variables.
+    Tests if constraint :math:`gx = h` fits either pattern :math:`ax_i = d`
+    or pattern :math:`ax_i + bx_j = d`, with the requirement that the
+    :math:`x_i` variable be one of the first n_elig variables.
+
     Returns:
-        i, None      if the constraint fits pattern 1
-        i, j         if the constraint fits pattern 2
-        None, None   otherwise
+       ``i, None`` such that the constraint has the form :math:`ax_i = d` for
+       some :math:`a, d`.
+
+       ``i, j`` such that the constraint has the form :math:`ax_i + bx_j = d`
+       for some :math:`a, b, d`.
+
+       ``None, None`` if neither pattern applies.
     '''
     n = len(g)
 
