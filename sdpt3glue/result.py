@@ -13,7 +13,7 @@ _SDPT3_POS_STATUS_MAP_VERB = (
     'norm(X) or norm(Z) diverging'
 )
 
-_SDPT3_NEG_STATYS_MAP_VERB = (
+_SDPT3_NEG_STATUS_MAP_VERB = (
     'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
     'relative gap < infeasibility',
     'lack of progress in predictor or corrector',
@@ -238,4 +238,4 @@ def get_verb_status(status_num):
     elif status_num >= 0:
         return _SDPT3_POS_STATUS_MAP_VERB[status_num]
     else:
-        return _SDPT3_NEG_STATYS_MAP_VERB[-status_num]
+        return _SDPT3_NEG_STATUS_MAP_VERB[-status_num]
