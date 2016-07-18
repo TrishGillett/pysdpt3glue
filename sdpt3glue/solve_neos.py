@@ -86,7 +86,8 @@ class NeosError(Exception):
 
 
 def neos_solve(
-        matfile_target, discard_matfile=True, no_prompt=False):
+        matfile_target, discard_matfile=True, no_prompt=False,
+        return_id_pwd=False):
     '''
     Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
     Returns the solve result message from NEOS.
@@ -106,7 +107,10 @@ def neos_solve(
     if discard_matfile:
         os.remove(matfile_target)
 
-    return msg
+    if return_id_pwd:
+        return msg, jobid, pwd
+    else:
+        return msg
 
 
 def handle_submission(matfile_target, no_prompt=False):
