@@ -41,6 +41,7 @@ def make_result_dict(msg):
     result_dict = extract_prop_dict(msg)
     result_dict['Xvars'] = extract_X(msg)
     result_dict['status_verb'] = get_verb_status(result_dict['status_num'])
+    result_dict['msg'] = msg
     return result_dict
 
 
