@@ -26,7 +26,8 @@ def check_output_target(mode, output_target):
         "If mode is 'matlab' or 'octave', an output_target must be provided."
     if output_target:
         assert not os.path.exists(output_target), \
-            "Something already exists at output_target, we won't overwrite it."
+            ("Something already exists at output_target, we won't overwrite "
+             "it:\n{0}".format(output_target))
 
 
 def sdpt3_solve_problem(
@@ -38,7 +39,8 @@ def sdpt3_solve_problem(
     prints it, and returns it.
     '''
     assert not os.path.exists(matfile_target), \
-        "Something already exists at matfile_target, we won't overwrite it."
+        ("Something already exists at matfile_target, we won't overwrite "
+         "it:\n{0}".format(matfile_target))
     check_output_target(mode, output_target)
 
     # Write the problem to a .mat file in Sedumi format

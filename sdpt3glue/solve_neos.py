@@ -86,14 +86,46 @@ class NeosError(Exception):
 
 
 def neos_solve(
-        matfile_target, discard_matfile=True, no_prompt=False):
+        matfile_target, discard_matfile=True, no_prompt=False,
+        return_id_pwd=False):
     '''
     Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
     Returns the solve result message from NEOS.
-    If write_output_to, has the side effect of writing the message to this file.
 
-    If no_prompt is True, it doesn't ask id and password manually and raise
+    If no_prompt is True, it won't ask for id and password manually and raise
     NeosError when some errors occur during connection to neos server.
+
+    Raises:
+      NeosError: When an error occurs by using Neos server.
+    '''
+    jobid, pwd = handle_submission(matfile_target, no_prompt=no_prompt)
+
+    neos_int = NeosInterface()
+    msg = neos_int.track_and_return(jobid, pwd)
+
+    # Cleanup
+    if discard_matfile:
+        os.remove(matfile_target)
+
+    if return_id_pwd:
+        return msg, jobid, pwd
+    else:
+        return msg
+
+
+def handle_submission(matfile_target, no_prompt=False):
+    '''
+    Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
+
+    Args:
+       matfile_target: the path of the .mat file containing the problem data.
+
+    Returns:
+       no_prompt: If False, in the event that problem submission fails the
+       user may be prompted to manually submit the problem on the website and
+       copy-paste the job ID and password information into a prompt.  If True,
+       an error will thrown rather than prompting occurring.  Make sure to use
+       True if running headlessly or otherwise unmonitored.
 
     Raises:
       NeosError: When an error occurs by using Neos server.
@@ -138,14 +170,7 @@ def neos_solve(
         except EOFError as e:
             raise NeosError(e)
 
-    neos_int = NeosInterface()
-    msg = neos_int.track_and_return(jobid, pwd)
-
-    # Cleanup
-    if discard_matfile:
-        os.remove(matfile_target)
-
-    return msg
+    return jobid, pwd
 
 
 def extract_id_pwd(source):
