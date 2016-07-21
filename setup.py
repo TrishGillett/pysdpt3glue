@@ -1,3 +1,12 @@
+#
+# setup.py
+#
+# Copyright (c) 2016 Trish Gillett-Kawamoto
+#
+# This software is released under the MIT License.
+#
+# http://opensource.org/licenses/mit-license.php
+#
 """ sdpt3glue package information.
 """
 from setuptools import setup, find_packages

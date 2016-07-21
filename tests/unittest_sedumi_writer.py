@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # pylint: disable=E1101
+#
+# tests/unittest_sedumi_writer.py
+#
+# Copyright (c) 2016 Trish Gillett-Kawamoto
+#
+# This software is released under the MIT License.
+#
+# http://opensource.org/licenses/mit-license.php
+#
 """
 Created on Thu Apr  7 16:22:17 2016
 

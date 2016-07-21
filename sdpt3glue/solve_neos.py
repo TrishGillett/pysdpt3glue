@@ -1,3 +1,12 @@
+#
+# sdpt3glue/solve_neos.py
+#
+# Copyright (c) 2016 Trish Gillett-Kawamoto
+#
+# This software is released under the MIT License.
+#
+# http://opensource.org/licenses/mit-license.php
+#
 """
 Basic scraper/webdriver to submit an sdpt3 problem on the NEOS webpage.
 This version uses selenium because difficulties were encountered using XML-RPC

@@ -1,3 +1,12 @@
+#
+# sdpt3glue/sedumi_writer.py
+#
+# Copyright (c) 2016 Trish Gillett-Kawamoto
+#
+# This software is released under the MIT License.
+#
+# http://opensource.org/licenses/mit-license.php
+#
 """
 Functions which express problems in Sedumi format and export them as .mat files
 for Matlab
