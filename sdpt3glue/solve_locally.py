@@ -1,3 +1,12 @@
+#
+# sdpt3glue/solve_locally.py
+#
+# Copyright (c) 2016 Trish Gillett-Kawamoto
+#
+# This software is released under the MIT License.
+#
+# http://opensource.org/licenses/mit-license.php
+#
 '''
 Methods that run code on a copy of Matlab or Octave installed on the user's
 machine.
