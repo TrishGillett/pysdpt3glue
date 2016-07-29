@@ -20,20 +20,6 @@ import subprocess
 import tempfile
 
 
-class MatlabCallError(Exception):
-    '''
-    This error is raised when an error occurs during a subprocess call to Matlab.
-    '''
-    pass
-
-
-class OctaveCallError(Exception):
-    '''
-    This error is raised when an error occurs during a subprocess call to Octave.
-    '''
-    pass
-
-
 class SubprocessCallError(Exception):
     '''
     This error is raised when an error occurs during a subprocess call.
@@ -51,14 +37,14 @@ def matlab_solve(matfile_target, discard_matfile=True):
 
     Returns:
         A dictionary with solve result information.
+
+    Raises:
+        SubprocessCallError when some error happens while executing matlab.
     '''
     # Generating the .mat file
     run_command = "matlab -r \"SDPT3solve('{0}')\" -nodisplay -nojvm".format(
         matfile_target)
-    try:
-        msg = run_command_get_output(run_command)
-    except SubprocessCallError, e:
-        raise MatlabCallError(e)
+    msg = _run_command_get_output(run_command)
 
     # Cleanup
     if discard_matfile:
@@ -79,6 +65,9 @@ def octave_solve(matfile_target, discard_matfile=True, cmd="octave"):
 
     Returns:
         A dictionary with solve result information.
+
+    Raises:
+        SubprocessCallError when some error happens while executing octave.
     '''
     # Generating the .mat file
     with tempfile.NamedTemporaryFile(
@@ -93,10 +82,7 @@ def octave_solve(matfile_target, discard_matfile=True, cmd="octave"):
 
         run_command = "{cmd} {script}".format(
             cmd=cmd, script=os.path.relpath(runner.name))
-        try:
-            msg = run_command_get_output(run_command)
-        except SubprocessCallError, e:
-            raise OctaveCallError(e)
+        msg = _run_command_get_output(run_command)
 
     # Cleanup
     if discard_matfile:
@@ -106,7 +92,7 @@ def octave_solve(matfile_target, discard_matfile=True, cmd="octave"):
     return msg
 
 
-def run_command_get_output(run_command):
+def _run_command_get_output(run_command):
     '''
     Runs the command run_command, saves the output to output_target, and
     returns the output log.
