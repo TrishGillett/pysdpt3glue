@@ -35,6 +35,22 @@ _SDPT3_NEG_STATUS_MAP_VERB = (
     'lack of progress in infeasibility'
 )
 
+_KEY_LIST = {
+    'number of iterations': 'iterations',
+    'primal objective value': 'primal_z',
+    'dual objective value': 'dual_z',
+    'gap': 'abs_gap',
+    'relative gap': 'rel_gap',
+    'actual relative gap': 'actual_rel_gap',
+    'rel. primal infeas': 'rel_primal_feas',
+    'rel. dual infeas': 'rel_dual_feas',
+    'Total CPU time (secs)': 'solve_time',
+    'CPU time per iteration': 'solve_time_per_iter',
+    'termination code': 'status_num'
+}
+"""the key is what we look for in the SDPT3 message output, the value is
+the name of key we'll save the information to in the output dict."""
+
 
 def make_result_dict(msg):
     '''
@@ -89,22 +105,7 @@ def extract_prop_dict(msg):
     constructs and returns a dictionary of basic solve result information.
     '''
     result_dict = {}
-
-    # the key is what we look for in the SDPT3 message output, the value is
-    # the name of key we'll save the information to in the output dict.
-    keylist = {'number of iterations': 'iterations',
-               'primal objective value': 'primal_z',
-               'dual objective value': 'dual_z',
-               'gap': 'abs_gap',
-               'relative gap': 'rel_gap',
-               'actual relative gap': 'actual_rel_gap',
-               'rel. primal infeas': 'rel_primal_feas',
-               'rel. dual infeas': 'rel_dual_feas',
-               'Total CPU time (secs)': 'solve_time',
-               'CPU time per iteration': 'solve_time_per_iter',
-               'termination code': 'status_num'}
-
-    for key in keylist.values():
+    for key in _KEY_LIST.values():
         result_dict[key] = None
 
     line_pattern = re.compile(
@@ -117,8 +118,8 @@ def extract_prop_dict(msg):
         key = line_parts[0].rstrip().replace("dual  ", "dual")
         val = handle_msg_item(line_parts[-1].strip())
 
-        if key in keylist and keylist[key] is not None:
-            result_dict[keylist[key]] = val
+        if key in _KEY_LIST and _KEY_LIST[key] is not None:
+            result_dict[_KEY_LIST[key]] = val
     return result_dict
 
 
