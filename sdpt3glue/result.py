@@ -16,22 +16,22 @@ from numpy import zeros
 
 
 _SDPT3_POS_STATUS_MAP_VERB = (
-    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-    'primal problem is suspected to be infeasible',
-    'dual problem is suspected to be infeasible',
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)\n',
+    'primal problem is suspected to be infeasible\n',
+    'dual problem is suspected to be infeasible\n',
     'norm(X) or norm(Z) diverging'
 )
 
 _SDPT3_NEG_STATUS_MAP_VERB = (
-    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-    'relative gap < infeasibility',
-    'lack of progress in predictor or corrector',
-    'X or Z not positive definite',
-    'difficulty in computing predictor or corrector direction',
-    'progress in relative gap or infeasibility is bad',
-    'maximum number of iterations reached',
-    'primal infeasibility has deteriorated too much',
-    'progress in relative gap has deteriorated',
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)\n',
+    'relative gap < infeasibility\n',
+    'lack of progress in predictor or corrector\n',
+    'X or Z not positive definite\n',
+    'difficulty in computing predictor or corrector direction\n',
+    'progress in relative gap or infeasibility is bad\n',
+    'maximum number of iterations reached\n',
+    'primal infeasibility has deteriorated too much\n',
+    'progress in relative gap has deteriorated\n',
     'lack of progress in infeasibility'
 )
 
