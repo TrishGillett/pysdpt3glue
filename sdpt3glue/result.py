@@ -16,24 +16,40 @@ from numpy import zeros
 
 
 _SDPT3_POS_STATUS_MAP_VERB = (
-    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-    'primal problem is suspected to be infeasible',
-    'dual problem is suspected to be infeasible',
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)\n',
+    'primal problem is suspected to be infeasible\n',
+    'dual problem is suspected to be infeasible\n',
     'norm(X) or norm(Z) diverging'
 )
 
 _SDPT3_NEG_STATUS_MAP_VERB = (
-    'max(relative gap,infeasibility) < gaptol (OPTIMAL)',
-    'relative gap < infeasibility',
-    'lack of progress in predictor or corrector',
-    'X or Z not positive definite',
-    'difficulty in computing predictor or corrector direction',
-    'progress in relative gap or infeasibility is bad',
-    'maximum number of iterations reached',
-    'primal infeasibility has deteriorated too much',
-    'progress in relative gap has deteriorated',
+    'max(relative gap,infeasibility) < gaptol (OPTIMAL)\n',
+    'relative gap < infeasibility\n',
+    'lack of progress in predictor or corrector\n',
+    'X or Z not positive definite\n',
+    'difficulty in computing predictor or corrector direction\n',
+    'progress in relative gap or infeasibility is bad\n',
+    'maximum number of iterations reached\n',
+    'primal infeasibility has deteriorated too much\n',
+    'progress in relative gap has deteriorated\n',
     'lack of progress in infeasibility'
 )
+
+_KEY_LIST = {
+    'number of iterations': 'iterations',
+    'primal objective value': 'primal_z',
+    'dual objective value': 'dual_z',
+    'gap': 'abs_gap',
+    'relative gap': 'rel_gap',
+    'actual relative gap': 'actual_rel_gap',
+    'rel. primal infeas': 'rel_primal_feas',
+    'rel. dual infeas': 'rel_dual_feas',
+    'Total CPU time (secs)': 'solve_time',
+    'CPU time per iteration': 'solve_time_per_iter',
+    'termination code': 'status_num'
+}
+"""the key is what we look for in the SDPT3 message output, the value is
+the name of key we'll save the information to in the output dict."""
 
 
 def make_result_dict(msg):
@@ -89,22 +105,7 @@ def extract_prop_dict(msg):
     constructs and returns a dictionary of basic solve result information.
     '''
     result_dict = {}
-
-    # the key is what we look for in the SDPT3 message output, the value is
-    # the name of key we'll save the information to in the output dict.
-    keylist = {'number of iterations': 'iterations',
-               'primal objective value': 'primal_z',
-               'dual objective value': 'dual_z',
-               'gap': 'abs_gap',
-               'relative gap': 'rel_gap',
-               'actual relative gap': 'actual_rel_gap',
-               'rel. primal infeas': 'rel_primal_feas',
-               'rel. dual infeas': 'rel_dual_feas',
-               'Total CPU time (secs)': 'solve_time',
-               'CPU time per iteration': 'solve_time_per_iter',
-               'termination code': 'status_num'}
-
-    for key in keylist.values():
+    for key in _KEY_LIST.values():
         result_dict[key] = None
 
     line_pattern = re.compile(
@@ -117,8 +118,8 @@ def extract_prop_dict(msg):
         key = line_parts[0].rstrip().replace("dual  ", "dual")
         val = handle_msg_item(line_parts[-1].strip())
 
-        if key in keylist and keylist[key] is not None:
-            result_dict[keylist[key]] = val
+        if key in _KEY_LIST and _KEY_LIST[key] is not None:
+            result_dict[_KEY_LIST[key]] = val
     return result_dict
 
 

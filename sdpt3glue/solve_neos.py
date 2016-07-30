@@ -38,9 +38,11 @@ def _print_fault(err, space=2):
       err: xmlrpclib.Fault error.
       space: Space size to be added before each message.
     """
-    print " " * space + "A fault occurred"
-    print " " * space + "Fault code: {0}".format(err.faultCode)
-    print " " * space + "Fault string: {0}".format(err.faultString)
+    print (
+        "{indent}A fault occurred\n"
+        "{indent}Fault code: {code}\n"
+        "{indent}Fault string: {msg}"
+    ).format(code=err.faultCode, msg=err.faultString, indent=" " * space)
 
 
 def _print_protocol_error(err, space=2):
@@ -50,11 +52,15 @@ def _print_protocol_error(err, space=2):
       err: xmlrpclib.ProtocolError error.
       space: Space size to be added before each message.
     """
-    print " " * space + "A protocol error occurred"
-    print " " * space + "URL: {0}".format(err.url)
-    print " " * space + "HTTP/HTTPS headers: {0}".format(err.headers)
-    print " " * space + "Error code: {0}".format(err.errcode)
-    print " " * space + "Error message: {0}".format(err.errmsg)
+    print (
+        "{indent}A protocol error occurred\n"
+        "{indent}URL: {url}\n"
+        "{indent}HTTP/HTTPS headers: {headers}\n"
+        "{indent}Error code: {code}\n"
+        "{indent}Error message: {msg}\n"
+    ).format(
+        url=err.url, msg=err.errmsg, headers=err.headers,
+        code=err.errcode, indent=" " * space)
 
 
 @contextlib.contextmanager
