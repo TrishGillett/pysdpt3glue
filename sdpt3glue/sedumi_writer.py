@@ -166,7 +166,6 @@ def symmetrize_sedumi_model(A, b, c, K):
     Symmetrize sedumi model.
     '''
     colstart = K['f'] + K['l'] + sum(K['q'])
-
     for s in K['s']:
         for i in range(s):
             for j in range(i + 1, s):
@@ -178,7 +177,7 @@ def symmetrize_sedumi_model(A, b, c, K):
                 averaged_c = 0.5 * (c[0, ijcol] + c[0, jicol])
                 c[0, ijcol] = averaged_c
                 c[0, jicol] = averaged_c
-        colstart + s**2
+        colstart += s**2
     return A, b, c, K
 
 
