@@ -2,6 +2,7 @@
 [![Code Climate](https://codeclimate.com/github/discardthree/py-sdpt3-glue/badges/gpa.svg)](https://codeclimate.com/github/discardthree/py-sdpt3-glue)
 [![Build Status](https://travis-ci.org/discardthree/pysdpt3glue.svg?branch=master)](https://travis-ci.org/discardthree/pysdpt3glue)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+[![PyPi](https://img.shields.io/badge/pypi-0.9.1-brightgreen.svg)](https://pypi.python.org/pypi/sdpt3glue/)
 
 The sdpt3glue package serves as glue code to allow Cvxpy semidefinite programming (SDP) problems to be solved using the SDPT3 solver for Matlab.
 
@@ -14,7 +15,7 @@ pip install sdpt3glue
 ##Documentation:
 Documentation is hosted [here](http://pythonhosted.org/sdpt3glue), courtesy of the Python Software Foundation.
 
-##Quick usage guide: 
+##Quick usage guide:
 
 ### Problem set up
 We assume that the problem to be solved is a Cvxpy problem object representing a semidefinite program.  For example, to use sdpt3glue to solve the problem
