@@ -9,9 +9,7 @@ addons:
       - liblapack-dev
       - gfortran
 install:
-  - pip install --upgrade pip==8.1.1
-  - pip install -U pip-tools
-  - pip-compile
+  - pip install --upgrade pip
   - pip install -r requirements.txt
 before_script:
   - mkdir travis-phantomjs
