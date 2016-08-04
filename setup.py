@@ -32,6 +32,17 @@ setup(
         'Glue code for solving semidefinite programs '
         'in Cvxpy format using the SDPT3 package for Matlab.'
     ),
+      long_description="""The sdpt3glue package serves as glue code to allow semidefinite programming (SDP problems modeled using Cvxpy to be solved using the Matlab-compatible solver SDPT3.
+
+SDPT3 can be used in a number of ways:
+
+- on an installed copy of Matlab with SDPT3,
+
+- on an installed copy of Octave with SDPT3,
+
+- using a Docker image of Octave with SDPT3,
+
+- by sending the problem to the NEOS server and retrieving the answer.""",
     author="Trish Gillett-Kawamoto",
     author_email="discardthree@gmail.com",
     url="https://github.com/discardthree/PySDPT3glue",
