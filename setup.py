@@ -27,7 +27,7 @@ def _load_requires_from_file(filepath):
 
 setup(
     name='sdpt3glue',
-    version='0.9.1',
+    version='0.9.2',
     description=(
         'Glue code for solving semidefinite programs '
         'in Cvxpy format using the SDPT3 package for Matlab.'
