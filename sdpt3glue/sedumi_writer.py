@@ -17,8 +17,6 @@ import os
 import numpy as np
 import scipy.io
 
-from cvxopt import matrix as cvxmat
-
 
 def write_cvxpy_to_mat(problem_data, target, simplify=True):
     '''
@@ -86,11 +84,7 @@ def problem_data_prep(problem_data):
       - Transpose c to be a row vector, which matches the organization of A, b, G, h
         (rows are for constraints, columns are for variables)
     '''
-    problem_data['A'] = cvxmat(1. * problem_data['A'])
-    problem_data['b'] = cvxmat(1. * problem_data['b'])
-    problem_data['G'] = cvxmat(1. * problem_data['G'])
-    problem_data['h'] = cvxmat(1. * problem_data['h'])
-    problem_data['c'] = cvxmat(1. * problem_data['c']).T
+    problem_data['c'] = problem_data['c'].T
     return problem_data
 
 

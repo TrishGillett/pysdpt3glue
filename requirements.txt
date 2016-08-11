@@ -6,8 +6,7 @@
 #
 
 CVXcanon>=0.1.0           # via cvxpy
-cvxopt>=1.1.8
-cvxpy>=0.4.2
+cvxpy>=0.4.3              # 0.4.3 is the first version of cvxpy which doesn’t depend on cvxopt
 dill>=0.2.5               # via multiprocess
 ecos>=2.0.4               # via cvxpy
 fastcache>=1.0.2          # via cvxpy
