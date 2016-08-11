@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sdpt3glue.sedumi_writer &mdash; SDPT3glue 0.9.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SDPT3glue 0.9.2 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SDPT3glue
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quickguide.html">Quick guide: Four ways to use sdpt3glue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sdpt3glue.html">sdpt3glue package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SDPT3glue</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+        <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>sdpt3glue.sedumi_writer</li>
+    <li class="wy-breadcrumbs-aside">
+      
+          
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for sdpt3glue.sedumi_writer</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions which express problems in Sedumi format and export them as .mat files</span>
+<span class="sd">for Matlab</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span>
+
+<span class="kn">from</span> <span class="nn">cvxopt</span> <span class="k">import</span> <span class="n">matrix</span> <span class="k">as</span> <span class="n">cvxmat</span>
+
+
+<div class="viewcode-block" id="write_cvxpy_to_mat"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.write_cvxpy_to_mat">[docs]</a><span class="k">def</span> <span class="nf">write_cvxpy_to_mat</span><span class="p">(</span><span class="n">problem_data</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        problem_data: As produced by applying get_problem_data[&#39;CVXOPT&#39;] to a</span>
+<span class="sd">        cvxpy problem.</span>
+
+<span class="sd">    Returns: (None)</span>
+
+<span class="sd">    Effect:</span>
+<span class="sd">        Saves a .mat file containing the A, b, c, K that define the problem</span>
+<span class="sd">        in Sedumi format to target (see http://plato.asu.edu/ftp/usrguide.pdf)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">make_sedumi_format_problem</span><span class="p">(</span>
+        <span class="n">problem_data</span><span class="p">,</span> <span class="n">simplify</span><span class="o">=</span><span class="n">simplify</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">offset</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">write_sedumi_to_mat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_sedumi_to_mat"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.write_sedumi_to_mat">[docs]</a><span class="k">def</span> <span class="nf">write_sedumi_to_mat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        A, b, c, K for Sedumi format</span>
+<span class="sd">        target: the path where we will save the .mat</span>
+
+<span class="sd">    Effect:</span>
+<span class="sd">        Saves a .mat file containing A, b, c, K to target</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">sparsify_tall_mat</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">sparsify_tall_mat</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">sparsify_tall_mat</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">clean_K_dims</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+
+    <span class="c1"># Check that target folder exists</span>
+    <span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+
+    <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">savemat</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">A</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">b</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="clean_K_dims"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.clean_K_dims">[docs]</a><span class="k">def</span> <span class="nf">clean_K_dims</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Matlab requires the dimensions to be given in floating point numbers,</span>
+<span class="sd">    this checker ensures that they are.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">K</span><span class="p">:</span>
+        <span class="c1"># let&#39;s try treating this like a list or tuple, and if that falls</span>
+        <span class="c1"># through then we&#39;ll assume it&#39;s a single number instead.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">p</span><span class="p">]):</span>
+                <span class="n">K</span><span class="p">[</span><span class="n">p</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">x</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">K</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">K</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">K</span></div>
+
+
+<div class="viewcode-block" id="problem_data_prep"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.problem_data_prep">[docs]</a><span class="k">def</span> <span class="nf">problem_data_prep</span><span class="p">(</span><span class="n">problem_data</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    &#39;Touch up&#39; the problem data in the following ways:</span>
+<span class="sd">      - Make sure the matrix elements aren&#39;t integers</span>
+<span class="sd">      - Make sure they&#39;re dense matrices rather than sparse ones, otherwise</span>
+<span class="sd">        there seem to be difficulties constructing block matrices</span>
+<span class="sd">      - Transpose c to be a row vector, which matches the organization of A, b, G, h</span>
+<span class="sd">        (rows are for constraints, columns are for variables)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cvxmat</span><span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">])</span>
+    <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cvxmat</span><span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">])</span>
+    <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cvxmat</span><span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">])</span>
+    <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cvxmat</span><span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">])</span>
+    <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cvxmat</span><span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">return</span> <span class="n">problem_data</span></div>
+
+
+<div class="viewcode-block" id="make_sedumi_format_problem"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.make_sedumi_format_problem">[docs]</a><span class="k">def</span> <span class="nf">make_sedumi_format_problem</span><span class="p">(</span><span class="n">problem_data</span><span class="p">,</span> <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Input:</span>
+<span class="sd">        problem_data: As produced by applying get_problem_data[&#39;CVXOPT&#39;] to a</span>
+<span class="sd">        cvxpy problem.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        A, b, c, K: Data defining an equivalent problem in Sedumi format.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">problem_data</span> <span class="o">=</span> <span class="n">problem_data_prep</span><span class="p">(</span><span class="n">problem_data</span><span class="p">)</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">dims</span><span class="p">[</span>
+        <span class="s1">&#39;q&#39;</span><span class="p">],</span> <span class="s2">&quot;Sorry, at this time we can&#39;t handle SOC constraints!&quot;</span>
+
+    <span class="n">nx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">])</span>
+    <span class="n">ni</span> <span class="o">=</span> <span class="n">dims</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
+    <span class="n">ne</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">])</span>
+    <span class="n">num_sdp_vars</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]])</span>
+
+<span class="c1">#==============================================================================</span>
+<span class="c1">#   EXPANSION STEP:</span>
+<span class="c1">#   Construct the expanded vector c_star and matrices A_star and Gs_star</span>
+<span class="c1">#</span>
+<span class="c1">#   At this point...</span>
+<span class="c1">#     c_star = [ c ] (nx)</span>
+<span class="c1">#              [ 0 ] (ni + num_sdp_vars)</span>
+<span class="c1">#</span>
+<span class="c1">#     A_star = [ A  |  0  |  0 ] (ne)        =&gt; eqs written in new vars</span>
+<span class="c1">#              [ Gl |  I  |  0 ] (ni)        =&gt; ineqs written as eqs in new vars</span>
+<span class="c1">#     Gs_star= [ Gs |  0  |  I ] (num_sdp_vars) =&gt; sets the exp in the SDP element</span>
+<span class="c1">#               (nx) (ni)(num_sdp_vars)          equal to the var representing it</span>
+<span class="c1">#==============================================================================</span>
+    <span class="n">num_sedumi_vars</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">+</span> <span class="n">ni</span> <span class="o">+</span> <span class="n">num_sdp_vars</span>
+
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_sedumi_vars</span><span class="p">))</span>
+    <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span>
+
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span> <span class="o">+</span> <span class="n">num_sdp_vars</span><span class="p">,</span> <span class="n">num_sedumi_vars</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span> <span class="o">+</span> <span class="n">num_sdp_vars</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># Fill in blocks for Ax = b constraints</span>
+    <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">ne</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span>
+    <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">ne</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Fill in blocks for Gx + s = h</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">ne</span><span class="p">:</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][:</span><span class="n">ni</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># = Gl</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">ne</span><span class="p">:</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span><span class="p">,</span> <span class="n">nx</span><span class="p">:</span><span class="n">nx</span> <span class="o">+</span> <span class="n">ni</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ni</span><span class="p">)</span>
+    <span class="n">b</span><span class="p">[</span><span class="n">ne</span><span class="p">:</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">][:</span><span class="n">ni</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># = hl</span>
+
+    <span class="c1"># Fill out blocks defining h - Gs = vec(Y), where Y is the PSD matrix</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span><span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][</span><span class="n">ni</span><span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># = Gs</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span><span class="p">:,</span> <span class="n">nx</span> <span class="o">+</span> <span class="n">ni</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">num_sdp_vars</span><span class="p">)</span>
+    <span class="n">b</span><span class="p">[</span><span class="n">ne</span> <span class="o">+</span> <span class="n">ni</span><span class="p">:]</span> <span class="o">=</span> <span class="n">problem_data</span><span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">][</span><span class="n">ni</span><span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># = hs</span>
+
+    <span class="n">obj_cst</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="n">nx</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="n">dims</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">],</span> <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="n">dims</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]}</span>
+    <span class="k">if</span> <span class="n">simplify</span><span class="p">:</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">obj_cst</span> <span class="o">=</span> <span class="n">simplify_sedumi_model</span><span class="p">(</span><span class="n">A</span><span class="p">,</span>
+                                                    <span class="n">b</span><span class="p">,</span>
+                                                    <span class="n">c</span><span class="p">,</span>
+                                                    <span class="n">K</span><span class="p">,</span>
+                                                    <span class="n">allow_nonzero_b</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">obj_cst</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;This shouldn&#39;t be possible with allow_nonzero_b=False.&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span> <span class="o">=</span> <span class="n">symmetrize_sedumi_model</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">obj_cst</span></div>
+
+
+<div class="viewcode-block" id="symmetrize_sedumi_model"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.symmetrize_sedumi_model">[docs]</a><span class="k">def</span> <span class="nf">symmetrize_sedumi_model</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Symmetrize sedumi model.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">colstart</span> <span class="o">=</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;f&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+                <span class="n">ijcol</span> <span class="o">=</span> <span class="n">colstart</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">j</span>
+                <span class="n">jicol</span> <span class="o">=</span> <span class="n">colstart</span> <span class="o">+</span> <span class="n">j</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">i</span>
+                <span class="n">averaged_Acol</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">A</span><span class="p">[:,</span> <span class="n">ijcol</span><span class="p">]</span> <span class="o">+</span> <span class="n">A</span><span class="p">[:,</span> <span class="n">jicol</span><span class="p">])</span>
+                <span class="n">A</span><span class="p">[:,</span> <span class="n">ijcol</span><span class="p">]</span> <span class="o">=</span> <span class="n">averaged_Acol</span>
+                <span class="n">A</span><span class="p">[:,</span> <span class="n">jicol</span><span class="p">]</span> <span class="o">=</span> <span class="n">averaged_Acol</span>
+                <span class="n">averaged_c</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ijcol</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">jicol</span><span class="p">])</span>
+                <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ijcol</span><span class="p">]</span> <span class="o">=</span> <span class="n">averaged_c</span>
+                <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">jicol</span><span class="p">]</span> <span class="o">=</span> <span class="n">averaged_c</span>
+        <span class="n">colstart</span> <span class="o">+</span> <span class="n">s</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span></div>
+
+
+<div class="viewcode-block" id="simplify_sedumi_model"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.simplify_sedumi_model">[docs]</a><span class="k">def</span> <span class="nf">simplify_sedumi_model</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">allow_nonzero_b</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Tries to eliminate variables using a few simple strategies:</span>
+
+<span class="sd">    1. If a constraint is expressing :math:`A_{ki}x_i = b_k` where variable</span>
+<span class="sd">    :math:`x_i` is a free variable, we can eliminate :math:`x_i`.</span>
+
+<span class="sd">    2. If a constraint is expressing :math:`A_{ki}x_i + A_{kj}x_j = b_k`</span>
+<span class="sd">    where variable :math:`x_i` is a free variable, we can eliminate</span>
+<span class="sd">    :math:`x_i`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        A, b, c, K: for a problem in Sedumi format</span>
+<span class="sd">        allow_nonzero_b: If False, only eliminate if bk = 0 is zero</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A, b, c, K: for the simplified problem.</span>
+<span class="sd">        offset: A constant which must be added to the optimal value of the</span>
+<span class="sd">        simplified problem in order to make it equivalent.  With</span>
+<span class="sd">        allow_nonzero_b, offset will be 0.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">n_free</span> <span class="o">=</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;f&#39;</span><span class="p">]</span>  <span class="c1"># the first n_free variables will be eligible for any kind</span>
+    <span class="c1"># of elimination</span>
+    <span class="n">n_nonneg</span> <span class="o">=</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>  <span class="c1"># the next n_nonneg variables will be eligible for only</span>
+    <span class="c1"># the simplest substitution aij*xj=bi and only in the case</span>
+    <span class="c1"># where bi/aij &gt;=0.</span>
+    <span class="n">n_vars</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">n_ctr</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span>
+
+<span class="c1">#==============================================================================</span>
+<span class="c1">#   SIMPLICATION STEP:</span>
+<span class="c1">#   If some ctr k of A_star*x = hs is actually just equating xi = xj</span>
+<span class="c1">#   for some i in the free vars, j in the sdp vars, we need to do the following:</span>
+<span class="c1">#     (1) for A_star, c, add column/element i to column/element j</span>
+<span class="c1">#     (2) for A_star, c, delete column/element i</span>
+<span class="c1">#     (3) for A_star, delete row k</span>
+<span class="c1">#     (4) adjust our counts for different variable/constraint types</span>
+<span class="c1">#   On the first pass we will do (1) and make lists of which rows/ctrs to eliminate.</span>
+<span class="c1">#   On a second pass we will do the rest.</span>
+<span class="c1">#</span>
+<span class="c1">#   SIMPLIFICATION PART ONE: Remove dependence on some cols and mark them for removal.</span>
+<span class="c1">#==============================================================================</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Given var_i which is a free variable, figure out if there is a row k of</span>
+    <span class="c1"># G_star such that Gs_star[ctr_k, var_i] == -1 AND hs[ctr_k] == 0 AND the</span>
+    <span class="c1"># only other non-zero element in the row is Gs_star[ctr_k, nx + ni +</span>
+    <span class="c1"># ctr_k] == 1</span>
+    <span class="k">for</span> <span class="n">ctr_k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_ctr</span><span class="p">):</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">check_eliminatibility</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">ctr_k</span><span class="p">,</span> <span class="p">:],</span>
+                                     <span class="n">b</span><span class="p">[</span><span class="n">ctr_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                                     <span class="n">n_elig</span><span class="o">=</span><span class="n">n_free</span> <span class="o">+</span> <span class="n">n_nonneg</span><span class="p">,</span>
+                                     <span class="n">allow_nonzero_b</span><span class="o">=</span><span class="n">allow_nonzero_b</span><span class="p">)</span>
+        <span class="c1"># Two cases where we can eliminate xi:</span>
+        <span class="c1"># 1) xi is a free var</span>
+        <span class="n">free_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_free</span><span class="p">)</span>
+        <span class="c1"># 2) xi is a nonneg var, the ctr is of form Akixi = bk, and bk/Aki &gt;= 0</span>
+        <span class="n">nonneg_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">j</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="mf">1.</span> <span class="o">*</span>
+                     <span class="n">b</span><span class="p">[</span><span class="n">ctr_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">A</span><span class="p">[</span><span class="n">ctr_k</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">free_ok</span> <span class="ow">or</span> <span class="n">nonneg_ok</span><span class="p">:</span>
+            <span class="n">aki</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">ctr_k</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">bk</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">ctr_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">bk</span> <span class="o">/</span> <span class="n">aki</span>
+
+            <span class="c1"># Akixi (optionally + Akjxj) = bk case, eliminate xi using</span>
+            <span class="c1"># xi = (Akj/Aki) - (bk/Aki)*x_j</span>
+            <span class="n">b</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="n">factor</span> <span class="o">*</span> <span class="n">A</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">offset</span> <span class="o">+=</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">j</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Akixi + Akjxj = bk case</span>
+                <span class="n">akj</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">ctr_k</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                <span class="n">factor</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">akj</span> <span class="o">/</span> <span class="n">aki</span>
+                <span class="n">A</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="n">factor</span> <span class="o">*</span> <span class="n">A</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+                <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="n">factor</span> <span class="o">*</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+
+            <span class="c1"># zero out the coefficients of var i to make sure it isn&#39;t chosen</span>
+            <span class="c1"># for elimination again</span>
+            <span class="n">A</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.</span>
+            <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.</span>
+
+    <span class="c1"># To wrap up, list all the variables which are still nontrivial to the</span>
+    <span class="c1"># model</span>
+    <span class="n">n_deleted_f</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">n_deleted_l</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cols_to_keep</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vars_fl</span> <span class="o">=</span> <span class="n">n_free</span> <span class="o">+</span> <span class="n">n_nonneg</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vars_fl</span><span class="p">):</span>
+        <span class="c1"># free vars not in constraints must have 0 coeff in obj, else unbounded.</span>
+        <span class="c1"># nonneg vars not in constraints must have &gt;=0 coeff in obj, else unbounded.</span>
+        <span class="c1"># if a var makes the probblem unbounded, we&#39;ll leave it alone and let</span>
+        <span class="c1"># the user find out when they actually solve.</span>
+        <span class="n">free_and_deletable</span> <span class="o">=</span> <span class="n">col</span> <span class="o">&lt;</span> <span class="n">n_free</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">nneg_and_deletable</span> <span class="o">=</span> <span class="n">col</span> <span class="o">&gt;=</span> <span class="n">n_free</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">&lt;</span> <span class="n">vars_fl</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">free_and_deletable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">A</span><span class="p">[:,</span> <span class="n">col</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">n_deleted_f</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">nneg_and_deletable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">A</span><span class="p">[:,</span> <span class="n">col</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">n_deleted_l</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cols_to_keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="c1"># SOC vars eliminatable iff they&#39;re not the first var of their vector and</span>
+    <span class="c1"># they&#39;re unused in any ctrs.</span>
+    <span class="n">col_start</span> <span class="o">=</span> <span class="n">n_free</span> <span class="o">+</span> <span class="n">n_nonneg</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">q_size</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">]):</span>
+        <span class="n">cols_to_keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_start</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">col_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col_start</span> <span class="o">+</span> <span class="n">q_size</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">A</span><span class="p">[:,</span> <span class="n">col</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">K</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cols_to_keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        <span class="n">col_start</span> <span class="o">+=</span> <span class="n">q_size</span>
+
+    <span class="c1"># All SDP vars kept</span>
+    <span class="n">cols_to_keep</span> <span class="o">+=</span> <span class="nb">range</span><span class="p">(</span><span class="n">col_start</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">)</span>
+
+    <span class="c1"># Symmetrize the use of PSD matrix variables.  We do this now because it might</span>
+    <span class="c1"># zero out some additional ctrs which we&#39;ll check for next.</span>
+    <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span> <span class="o">=</span> <span class="n">symmetrize_sedumi_model</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+
+    <span class="c1"># Now figure out which ctrs are nontrivial (trivial meaning 0x = 0).</span>
+    <span class="c1"># Note that A ctr of 0x = b would make the problem infeasible, but in that case</span>
+    <span class="c1"># we&#39;ll leave it in so the user finds it when they solve.</span>
+    <span class="n">rows_to_keep</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_ctr</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">rows_to_keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+<span class="c1">#==============================================================================</span>
+<span class="c1">#   SIMPLIFICATION STEP PART TWO: construct final matrices with only</span>
+<span class="c1">#     the rows/cols we want</span>
+<span class="c1">#==============================================================================</span>
+    <span class="c1"># new downsized problem</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">rows_to_keep</span><span class="p">,</span> <span class="n">cols_to_keep</span><span class="p">)]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">rows_to_keep</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">cols_to_keep</span><span class="p">)]</span>
+
+    <span class="c1"># problem dimensions</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols_to_keep</span><span class="p">)</span> <span class="o">+</span> <span class="n">n_deleted_f</span> <span class="o">+</span> <span class="n">n_deleted_l</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;f&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">n_deleted_f</span><span class="p">,</span>
+         <span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">n_deleted_l</span><span class="p">,</span>
+         <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
+         <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]}</span>
+    <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">offset</span></div>
+
+
+<div class="viewcode-block" id="check_eliminatibility"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.check_eliminatibility">[docs]</a><span class="k">def</span> <span class="nf">check_eliminatibility</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">n_elig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_nonzero_b</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Tests if constraint :math:`gx = h` fits either pattern :math:`ax_i = d`</span>
+<span class="sd">    or pattern :math:`ax_i + bx_j = d`, with the requirement that the</span>
+<span class="sd">    :math:`x_i` variable be one of the first n_elig variables.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">       ``i, None`` such that the constraint has the form :math:`ax_i = d` for</span>
+<span class="sd">       some :math:`a, d`.</span>
+
+<span class="sd">       ``i, j`` such that the constraint has the form :math:`ax_i + bx_j = d`</span>
+<span class="sd">       for some :math:`a, b, d`.</span>
+
+<span class="sd">       ``None, None`` if neither pattern applies.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">n_elig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_elig</span> <span class="o">=</span> <span class="n">n</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_nonzero_b</span> <span class="ow">and</span> <span class="n">h</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_elig</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">g</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">g</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># having stopped, see which we have found:</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="kc">None</span>  <span class="c1"># the end of the row</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>  <span class="c1"># the second of exactly two nonzero coefficients</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>  <span class="c1"># the second of three or more nonzero coefficients</span>
+
+    <span class="c1"># If nothing&#39;s been returned yet, it&#39;s because all the eliminatible</span>
+    <span class="c1"># vars&#39; coeffs are zero.</span>
+    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="sparsify_tall_mat"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.sedumi_writer.sparsify_tall_mat">[docs]</a><span class="k">def</span> <span class="nf">sparsify_tall_mat</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">block_height</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns a sparse matrix in scipy.sparse.coo_matrix form which is equivalent to M</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">spmat_collector</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">*</span> <span class="n">block_height</span> <span class="o">&lt;</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">curr_block</span> <span class="o">=</span> <span class="n">M</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">block_height</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">block_height</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">spmat_collector</span> <span class="o">+=</span> <span class="p">[</span><span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">(</span><span class="n">curr_block</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">))]</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">construct</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">spmat_collector</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Patricia Gillett.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.9.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

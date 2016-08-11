@@ -1,0 +1,476 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sdpt3glue.solve_neos &mdash; SDPT3glue 0.9.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SDPT3glue 0.9.2 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SDPT3glue
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quickguide.html">Quick guide: Four ways to use sdpt3glue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sdpt3glue.html">sdpt3glue package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SDPT3glue</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+        <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>sdpt3glue.solve_neos</li>
+    <li class="wy-breadcrumbs-aside">
+      
+          
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for sdpt3glue.solve_neos</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Basic scraper/webdriver to submit an sdpt3 problem on the NEOS webpage.</span>
+<span class="sd">This version uses selenium because difficulties were encountered using XML-RPC</span>
+<span class="sd">for problems of this type.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+<span class="kn">import</span> <span class="nn">xmlrpclib</span>
+<span class="kn">from</span> <span class="nn">xmlrpclib</span> <span class="k">import</span> <span class="n">Fault</span>
+<span class="kn">from</span> <span class="nn">xmlrpclib</span> <span class="k">import</span> <span class="n">ProtocolError</span>
+<span class="kn">from</span> <span class="nn">selenium</span> <span class="k">import</span> <span class="n">webdriver</span>
+<span class="kn">from</span> <span class="nn">selenium.common.exceptions</span> <span class="k">import</span> <span class="n">WebDriverException</span>
+
+
+<span class="n">WEBDRIVERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Firefox&quot;</span><span class="p">:</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Firefox</span><span class="p">,</span>
+    <span class="s2">&quot;PhantomJS&quot;</span><span class="p">:</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">PhantomJS</span>
+<span class="p">}</span>
+<span class="sd">&quot;&quot;&quot; Webdrivers to try using. &quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_print_fault</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Print message from xmlrpclib.Fault.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      err: xmlrpclib.Fault error.</span>
+<span class="sd">      space: Space size to be added before each message.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;A fault occurred&quot;</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;Fault code: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">faultCode</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;Fault string: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">faultString</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_print_protocol_error</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Print message from xmlrpclib.ProtocolError.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      err: xmlrpclib.ProtocolError error.</span>
+<span class="sd">      space: Space size to be added before each message.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;A protocol error occurred&quot;</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;URL: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;HTTP/HTTPS headers: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;Error code: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">errcode</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">space</span> <span class="o">+</span> <span class="s2">&quot;Error message: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">errmsg</span><span class="p">)</span>
+
+
+<span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<span class="k">def</span> <span class="nf">_get_driver</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Try to make a webdriver according to installed browsers.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      Installed webdriver.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      RuntimeError: When no supported browsers are available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">driver</span> <span class="ow">in</span> <span class="n">WEBDRIVERS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">driver</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="n">StandardError</span><span class="p">,</span> <span class="n">WebDriverException</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> seems to be not installed: </span><span class="si">{1}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">res</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+            <span class="k">return</span>
+
+    <span class="k">raise</span> <span class="n">WebDriverException</span><span class="p">(</span><span class="s2">&quot;No web drivers are available.&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="NeosError"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve_neos.NeosError">[docs]</a><span class="k">class</span> <span class="nc">NeosError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Error caused by Neos server.</span>
+
+<span class="sd">    This error is raised when an error occurs during calling Neos.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="neos_solve"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve_neos.neos_solve">[docs]</a><span class="k">def</span> <span class="nf">neos_solve</span><span class="p">(</span>
+        <span class="n">matfile_target</span><span class="p">,</span> <span class="n">discard_matfile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">no_prompt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.</span>
+<span class="sd">    Returns the solve result message from NEOS.</span>
+<span class="sd">    If write_output_to, has the side effect of writing the message to this file.</span>
+
+<span class="sd">    If no_prompt is True, it doesn&#39;t ask id and password manually and raise</span>
+<span class="sd">    NeosError when some errors occur during connection to neos server.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      NeosError: When an error occurs by using Neos server.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">matfile_target</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The matfile </span><span class="si">{0}</span><span class="s2"> doesn&#39;t exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matfile_target</span><span class="p">))</span>
+
+    <span class="c1"># any backslashes need to be doubly escaped for the web form</span>
+    <span class="n">matfile_target</span> <span class="o">=</span> <span class="n">matfile_target</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">_get_driver</span><span class="p">()</span> <span class="k">as</span> <span class="n">browser</span><span class="p">:</span>
+            <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;http://www.neos-server.org/neos/solvers/sdp:sdpt3/MATLAB_BINARY.html&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Find the .mat upload box and input the path to ours</span>
+            <span class="n">file_upload_element</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s2">&quot;field.2&quot;</span><span class="p">)</span>
+            <span class="n">file_upload_element</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">matfile_target</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">file_upload_element</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">),</span> \
+                <span class="s2">&quot;Couldn&#39;t input file name, are you sure it exists?&quot;</span>
+
+            <span class="c1"># Find the submit button and click it</span>
+            <span class="n">submit_xpath</span> <span class="o">=</span> <span class="s1">&#39;//input[@type=&quot;submit&quot;]&#39;</span>
+            <span class="n">submit_button</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="n">submit_xpath</span><span class="p">)</span>
+            <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+            <span class="c1"># After a few moments, the id and password will appear, and</span>
+            <span class="c1"># we&#39;ll try to grab them automatically.</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">page_source</span>
+            <span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span> <span class="o">=</span> <span class="n">extract_id_pwd</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="n">WebDriverException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">no_prompt</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NeosError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="c1"># If that fails for any reason, we ask the user to submit the problem</span>
+        <span class="c1"># manually and copy-paste the lines giving the id and password.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span> <span class="o">=</span> <span class="n">ask_user_to_submit</span><span class="p">(</span><span class="n">matfile_target</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">EOFError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NeosError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="n">neos_int</span> <span class="o">=</span> <span class="n">NeosInterface</span><span class="p">()</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">neos_int</span><span class="o">.</span><span class="n">track_and_return</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span><span class="p">)</span>
+
+    <span class="c1"># Cleanup</span>
+    <span class="k">if</span> <span class="n">discard_matfile</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">matfile_target</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">msg</span></div>
+
+
+<div class="viewcode-block" id="extract_id_pwd"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve_neos.extract_id_pwd">[docs]</a><span class="k">def</span> <span class="nf">extract_id_pwd</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given a snippet of the form</span>
+
+<span class="sd">    .. code-block:: none</span>
+
+<span class="sd">        Job#     : xxxxxxx</span>
+<span class="sd">        Password : yyyyyyyy</span>
+
+<span class="sd">    extracts and returns the strings for job ID and password</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Job#&#39;</span><span class="p">)</span>
+    <span class="n">snippet</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span> <span class="o">+</span> <span class="mi">60</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">snippet</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">jobid_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">pwd_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="n">jobid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">jobid_line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">pwd</span> <span class="o">=</span> <span class="n">pwd_line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span></div>
+
+
+<div class="viewcode-block" id="ask_user_to_submit"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve_neos.ask_user_to_submit">[docs]</a><span class="k">def</span> <span class="nf">ask_user_to_submit</span><span class="p">(</span><span class="n">matfilepath</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Instructs the user to manually submit their problem and then feed the ID</span>
+<span class="sd">    and password back into the program.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      EOFError: When a user sends EOF.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="nb">print</span> <span class="p">(</span>
+        <span class="s2">&quot;Selenium submission failed, submit it manually!&quot;</span>
+        <span class="s2">&quot;Find this files and submit them on the website:&quot;</span>
+        <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Once you&#39;ve submitted your problem, copy and paste the&quot;</span>
+        <span class="s2">&quot;two lines that look like this&quot;</span>
+        <span class="s2">&quot;        Job#     : xxxxxxx&quot;</span>
+        <span class="s2">&quot;        Password : yyyyyyyy&quot;</span>
+        <span class="s2">&quot;below and hit Enter. Or, you can just enter the job and&quot;</span>
+        <span class="s2">&quot;password strings on consecutive lines.  Good luck!&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matfilepath</span><span class="p">)</span>
+
+    <span class="n">user_input</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">user_input</span><span class="p">:</span>
+            <span class="n">user_input</span> <span class="o">=</span> <span class="n">raw_input</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">jobid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">user_input</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">pwd</span> <span class="o">=</span> <span class="n">raw_input</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=============</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span>
+
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Try again!</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="NeosInterface"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve_neos.NeosInterface">[docs]</a><span class="k">class</span> <span class="nc">NeosInterface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An abstract class for connections with the remote NEOS Server for</span>
+<span class="sd">    Optimization. NeosInterface objects communicate with the NEOS Server via</span>
+<span class="sd">    XML-RPC. This class wraps the server&#39;s services into a few convenient</span>
+<span class="sd">    methods which, for the time being, are designed with the solution of AMPL</span>
+<span class="sd">    models in mind.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">neos_host</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neos_port</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+         <span class="c1"># Go to xmlrpc and flip on __verbose if you are debugging</span>
+         <span class="c1"># and want to see ALL xml-rpc communication</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">neos_host</span><span class="p">:</span>
+            <span class="n">neos_host</span> <span class="o">=</span> <span class="s2">&quot;neos.mcs.anl.gov&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">neos_port</span><span class="p">:</span>
+            <span class="n">neos_port</span> <span class="o">=</span> <span class="mi">3332</span>
+
+        <span class="n">neos_url</span> <span class="o">=</span> <span class="s2">&quot;http://</span><span class="si">{host}</span><span class="s2">:</span><span class="si">{port}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">host</span><span class="o">=</span><span class="n">neos_host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">neos_port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">xmlrpclib</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="n">neos_url</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NeosInterface.track_and_return"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve_neos.NeosInterface.track_and_return">[docs]</a>    <span class="k">def</span> <span class="nf">track_and_return</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Takes a jobid and password for a solve already in progress,</span>
+<span class="sd">        waits for its status to change to &#39;Done&#39;, and returns the message,</span>
+<span class="sd">        jobid, and password.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">getJobStatus</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="n">Fault</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">_print_fault</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+                <span class="nb">print</span> <span class="s2">&quot;  Error checking status: </span><span class="si">{0}</span><span class="s2">  (will try again)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">except</span> <span class="n">ProtocolError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">_print_protocol_error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+                <span class="nb">print</span> <span class="s2">&quot;  Error checking status: </span><span class="si">{0}</span><span class="s2">  (will try again)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;Done&quot;</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="n">sleep</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_final_results</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="n">msg</span></div>
+
+<div class="viewcode-block" id="NeosInterface.get_final_results"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve_neos.NeosInterface.get_final_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_final_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This funtion is &#39;stubborn&#39;, meaning that if it&#39;s unable to get the</span>
+<span class="sd">        results it will wait a few seconds and try again.  Stubborn</span>
+<span class="sd">        functionality is intended to smooth over lost internet connections or</span>
+<span class="sd">        computers that may fall asleep and then wake up and resume running</span>
+<span class="sd">        code.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">getFinalResults</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">pwd</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Fault</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">_print_fault</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ProtocolError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">_print_protocol_error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Patricia Gillett.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.9.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

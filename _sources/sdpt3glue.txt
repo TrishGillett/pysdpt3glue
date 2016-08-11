@@ -1,0 +1,52 @@
+sdpt3glue package
+=================
+
+.. automodule:: sdpt3glue
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Submodules
+----------
+
+sdpt3glue.result module
+-----------------------
+
+.. automodule:: sdpt3glue.result
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sdpt3glue.sedumi_writer module
+------------------------------
+
+.. automodule:: sdpt3glue.sedumi_writer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sdpt3glue.solve module
+----------------------
+
+.. automodule:: sdpt3glue.solve
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sdpt3glue.solve_locally module
+------------------------------
+
+.. automodule:: sdpt3glue.solve_locally
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sdpt3glue.solve_neos module
+---------------------------
+
+.. automodule:: sdpt3glue.solve_neos
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+

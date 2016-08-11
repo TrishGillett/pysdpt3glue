@@ -1,0 +1,578 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sdpt3glue package &mdash; SDPT3glue 0.9.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SDPT3glue 0.9.2 documentation" href="index.html"/>
+        <link rel="prev" title="Quick guide: Four ways to use sdpt3glue" href="quickguide.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SDPT3glue
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickguide.html">Quick guide: Four ways to use sdpt3glue</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">sdpt3glue package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-sdpt3glue.result">sdpt3glue.result module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-sdpt3glue.sedumi_writer">sdpt3glue.sedumi_writer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-sdpt3glue.solve">sdpt3glue.solve module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-sdpt3glue.solve_locally">sdpt3glue.solve_locally module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-sdpt3glue.solve_neos">sdpt3glue.solve_neos module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SDPT3glue</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>sdpt3glue package</li>
+    <li class="wy-breadcrumbs-aside">
+      
+          
+          <a href="_sources/sdpt3glue.txt" rel="nofollow"> View page source</a>
+        
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-sdpt3glue">
+<span id="sdpt3glue-package"></span><h1>sdpt3glue package<a class="headerlink" href="#module-sdpt3glue" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sdpt3glue.result">
+<span id="sdpt3glue-result-module"></span><h2>sdpt3glue.result module<a class="headerlink" href="#module-sdpt3glue.result" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sdpt3glue.result.can_use_msg">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">can_use_msg</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#can_use_msg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.can_use_msg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if a message is non-trivial and contains the phrase
+&#8220;SDPT3: Infeasible path-following algorithms&#8221;, which should appear in the
+output log just before the result properties are listed.  While it&#8217;s
+probably possible for this function to return True in a case where there&#8217;s
+something wrong with the message, this is a good preliminary check to do.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.result.extract_X">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">extract_X</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#extract_X"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.extract_X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the output message from running SDPT3solve.m, reconstruct the X
+matrix from the printed output and return it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.result.extract_prop_dict">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">extract_prop_dict</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#extract_prop_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.extract_prop_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the output message from running SDPT3solve.m, this function
+constructs and returns a dictionary of basic solve result information.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.result.get_verb_status">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">get_verb_status</code><span class="sig-paren">(</span><em>status_num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#get_verb_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.get_verb_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that takes an SDPT3 numerical termination code as input and
+returns a phrase (string) explaining the implications of the termination
+code.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.result.handle_msg_item">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">handle_msg_item</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#handle_msg_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.handle_msg_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that takes a string x and returns it&#8217;s interpretation as an int,
+float, or string in that order of preference.  If x is None, None is
+returned.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.result.make_result_dict">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">make_result_dict</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#make_result_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.make_result_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts some solve information from the log message and constructs a dict.
+This function will error if the message is empty or does not include the phrase
+&#8220;SDPT3: Infeasible path-following algorithms&#8221;, which is an indicator that the
+solver at least started okay.  If the log passes that basic test, we just retrieve
+what information we can.  If the dict doesn&#8217;t at least contain a status_num and
+status_verb, you should check the log manually and see what went wrong.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.result.make_result_summary">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">make_result_summary</code><span class="sig-paren">(</span><em>result</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#make_result_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.make_result_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints a basic summary of information about an SDPT3 solve result.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.result.print_summary">
+<code class="descclassname">sdpt3glue.result.</code><code class="descname">print_summary</code><span class="sig-paren">(</span><em>result</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/result.html#print_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.result.print_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints out the summary produced by make_result_summary.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-sdpt3glue.sedumi_writer">
+<span id="sdpt3glue-sedumi-writer-module"></span><h2>sdpt3glue.sedumi_writer module<a class="headerlink" href="#module-sdpt3glue.sedumi_writer" title="Permalink to this headline">¶</a></h2>
+<p>Functions which express problems in Sedumi format and export them as .mat files
+for Matlab</p>
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.check_eliminatibility">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">check_eliminatibility</code><span class="sig-paren">(</span><em>g</em>, <em>h</em>, <em>n_elig=None</em>, <em>allow_nonzero_b=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#check_eliminatibility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.check_eliminatibility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests if constraint <span class="math">\(gx = h\)</span> fits either pattern <span class="math">\(ax_i = d\)</span>
+or pattern <span class="math">\(ax_i + bx_j = d\)</span>, with the requirement that the
+<span class="math">\(x_i\)</span> variable be one of the first n_elig variables.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd><p class="first"><code class="docutils literal"><span class="pre">i,</span> <span class="pre">None</span></code> such that the constraint has the form <span class="math">\(ax_i = d\)</span> for
+some <span class="math">\(a, d\)</span>.</p>
+<p><code class="docutils literal"><span class="pre">i,</span> <span class="pre">j</span></code> such that the constraint has the form <span class="math">\(ax_i + bx_j = d\)</span>
+for some <span class="math">\(a, b, d\)</span>.</p>
+<p class="last"><code class="docutils literal"><span class="pre">None,</span> <span class="pre">None</span></code> if neither pattern applies.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.clean_K_dims">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">clean_K_dims</code><span class="sig-paren">(</span><em>K</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#clean_K_dims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.clean_K_dims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matlab requires the dimensions to be given in floating point numbers,
+this checker ensures that they are.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.make_sedumi_format_problem">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">make_sedumi_format_problem</code><span class="sig-paren">(</span><em>problem_data</em>, <em>simplify=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#make_sedumi_format_problem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.make_sedumi_format_problem" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Input:</dt>
+<dd>problem_data: As produced by applying get_problem_data[&#8216;CVXOPT&#8217;] to a
+cvxpy problem.</dd>
+<dt>Returns:</dt>
+<dd>A, b, c, K: Data defining an equivalent problem in Sedumi format.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.problem_data_prep">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">problem_data_prep</code><span class="sig-paren">(</span><em>problem_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#problem_data_prep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.problem_data_prep" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>&#8216;Touch up&#8217; the problem data in the following ways:</dt>
+<dd><ul class="first last simple">
+<li>Make sure the matrix elements aren&#8217;t integers</li>
+<li>Make sure they&#8217;re dense matrices rather than sparse ones, otherwise
+there seem to be difficulties constructing block matrices</li>
+<li>Transpose c to be a row vector, which matches the organization of A, b, G, h
+(rows are for constraints, columns are for variables)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.simplify_sedumi_model">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">simplify_sedumi_model</code><span class="sig-paren">(</span><em>A</em>, <em>b</em>, <em>c</em>, <em>K</em>, <em>allow_nonzero_b=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#simplify_sedumi_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.simplify_sedumi_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries to eliminate variables using a few simple strategies:</p>
+<p>1. If a constraint is expressing <span class="math">\(A_{ki}x_i = b_k\)</span> where variable
+<span class="math">\(x_i\)</span> is a free variable, we can eliminate <span class="math">\(x_i\)</span>.</p>
+<p>2. If a constraint is expressing <span class="math">\(A_{ki}x_i + A_{kj}x_j = b_k\)</span>
+where variable <span class="math">\(x_i\)</span> is a free variable, we can eliminate
+<span class="math">\(x_i\)</span>.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>A, b, c, K: for a problem in Sedumi format
+allow_nonzero_b: If False, only eliminate if bk = 0 is zero</dd>
+<dt>Returns:</dt>
+<dd>A, b, c, K: for the simplified problem.
+offset: A constant which must be added to the optimal value of the
+simplified problem in order to make it equivalent.  With
+allow_nonzero_b, offset will be 0.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.sparsify_tall_mat">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">sparsify_tall_mat</code><span class="sig-paren">(</span><em>M</em>, <em>block_height=1000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#sparsify_tall_mat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.sparsify_tall_mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a sparse matrix in scipy.sparse.coo_matrix form which is equivalent to M</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.symmetrize_sedumi_model">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">symmetrize_sedumi_model</code><span class="sig-paren">(</span><em>A</em>, <em>b</em>, <em>c</em>, <em>K</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#symmetrize_sedumi_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.symmetrize_sedumi_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Symmetrize sedumi model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.write_cvxpy_to_mat">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">write_cvxpy_to_mat</code><span class="sig-paren">(</span><em>problem_data</em>, <em>target</em>, <em>simplify=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#write_cvxpy_to_mat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.write_cvxpy_to_mat" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>problem_data: As produced by applying get_problem_data[&#8216;CVXOPT&#8217;] to a
+cvxpy problem.</dd>
+</dl>
+<p>Returns: (None)</p>
+<dl class="docutils">
+<dt>Effect:</dt>
+<dd>Saves a .mat file containing the A, b, c, K that define the problem
+in Sedumi format to target (see <a class="reference external" href="http://plato.asu.edu/ftp/usrguide.pdf">http://plato.asu.edu/ftp/usrguide.pdf</a>)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.sedumi_writer.write_sedumi_to_mat">
+<code class="descclassname">sdpt3glue.sedumi_writer.</code><code class="descname">write_sedumi_to_mat</code><span class="sig-paren">(</span><em>A</em>, <em>b</em>, <em>c</em>, <em>K</em>, <em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/sedumi_writer.html#write_sedumi_to_mat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.sedumi_writer.write_sedumi_to_mat" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>A, b, c, K for Sedumi format
+target: the path where we will save the .mat</dd>
+<dt>Effect:</dt>
+<dd>Saves a .mat file containing A, b, c, K to target</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-sdpt3glue.solve">
+<span id="sdpt3glue-solve-module"></span><h2>sdpt3glue.solve module<a class="headerlink" href="#module-sdpt3glue.solve" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sdpt3glue.solve.check_output_target">
+<code class="descclassname">sdpt3glue.solve.</code><code class="descname">check_output_target</code><span class="sig-paren">(</span><em>mode</em>, <em>output_target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve.html#check_output_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve.check_output_target" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>checks if the value of output_target is appropriate:</dt>
+<dd><ul class="first last simple">
+<li>output_target can&#8217;t be None if mode is matlab or octave</li>
+<li>at least for now, output_target can&#8217;t be a file that already exists</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve.sdpt3_solve_mat">
+<code class="descclassname">sdpt3glue.solve.</code><code class="descname">sdpt3_solve_mat</code><span class="sig-paren">(</span><em>matfile_path</em>, <em>mode</em>, <em>output_target=None</em>, <em>discard_matfile=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve.html#sdpt3_solve_mat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve.sdpt3_solve_mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper function that takes the path of a .mat file, solves the Sedumi
+problem it contains with NEOS or a local Matlab/SDPT3 installation, then
+constructs the result, prints it, and returns it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve.sdpt3_solve_problem">
+<code class="descclassname">sdpt3glue.solve.</code><code class="descname">sdpt3_solve_problem</code><span class="sig-paren">(</span><em>problem</em>, <em>mode</em>, <em>matfile_target</em>, <em>output_target=None</em>, <em>discard_matfile=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve.html#sdpt3_solve_problem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve.sdpt3_solve_problem" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper function that takes a cvxpy problem, makes the .mat file, solves
+it by NEOS or a local Matlab/SDPT3 installation, then constructs the result,
+prints it, and returns it.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-sdpt3glue.solve_locally">
+<span id="sdpt3glue-solve-locally-module"></span><h2>sdpt3glue.solve_locally module<a class="headerlink" href="#module-sdpt3glue.solve_locally" title="Permalink to this headline">¶</a></h2>
+<p>Methods that run code on a copy of Matlab or Octave installed on the user&#8217;s
+machine.</p>
+<dl class="exception">
+<dt id="sdpt3glue.solve_locally.MatlabCallError">
+<em class="property">exception </em><code class="descclassname">sdpt3glue.solve_locally.</code><code class="descname">MatlabCallError</code><a class="reference internal" href="_modules/sdpt3glue/solve_locally.html#MatlabCallError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_locally.MatlabCallError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>This error is raised when an error occurs during a subprocess call to Matlab.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="sdpt3glue.solve_locally.OctaveCallError">
+<em class="property">exception </em><code class="descclassname">sdpt3glue.solve_locally.</code><code class="descname">OctaveCallError</code><a class="reference internal" href="_modules/sdpt3glue/solve_locally.html#OctaveCallError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_locally.OctaveCallError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>This error is raised when an error occurs during a subprocess call to Octave.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="sdpt3glue.solve_locally.SubprocessCallError">
+<em class="property">exception </em><code class="descclassname">sdpt3glue.solve_locally.</code><code class="descname">SubprocessCallError</code><a class="reference internal" href="_modules/sdpt3glue/solve_locally.html#SubprocessCallError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_locally.SubprocessCallError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>This error is raised when an error occurs during a subprocess call.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve_locally.matlab_solve">
+<code class="descclassname">sdpt3glue.solve_locally.</code><code class="descname">matlab_solve</code><span class="sig-paren">(</span><em>matfile_target</em>, <em>discard_matfile=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_locally.html#matlab_solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_locally.matlab_solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>The .mat is loaded into matlab and the problem is solved with SDPT3.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>matfile_target: the path to the .mat file containing the Sedumi format problem data.
+discard_matfile: if True, deletes the .mat file after the solve finishes.</dd>
+<dt>Returns:</dt>
+<dd>A dictionary with solve result information.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve_locally.octave_solve">
+<code class="descclassname">sdpt3glue.solve_locally.</code><code class="descname">octave_solve</code><span class="sig-paren">(</span><em>matfile_target</em>, <em>discard_matfile=True</em>, <em>cmd='octave'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_locally.html#octave_solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_locally.octave_solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>The .mat is loaded into octave and the problem is solved with SDPT3.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>matfile_target: the path to the .mat file containing the Sedumi format problem data.
+discard_matfile: if True, deletes the .mat file after the solve finishes.
+cmd: command name for octave, which will be used for alternative command.</dd>
+<dt>Returns:</dt>
+<dd>A dictionary with solve result information.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve_locally.run_command_get_output">
+<code class="descclassname">sdpt3glue.solve_locally.</code><code class="descname">run_command_get_output</code><span class="sig-paren">(</span><em>run_command</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_locally.html#run_command_get_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_locally.run_command_get_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the command run_command, saves the output to output_target, and
+returns the output log.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-sdpt3glue.solve_neos">
+<span id="sdpt3glue-solve-neos-module"></span><h2>sdpt3glue.solve_neos module<a class="headerlink" href="#module-sdpt3glue.solve_neos" title="Permalink to this headline">¶</a></h2>
+<p>Basic scraper/webdriver to submit an sdpt3 problem on the NEOS webpage.
+This version uses selenium because difficulties were encountered using XML-RPC
+for problems of this type.</p>
+<dl class="exception">
+<dt id="sdpt3glue.solve_neos.NeosError">
+<em class="property">exception </em><code class="descclassname">sdpt3glue.solve_neos.</code><code class="descname">NeosError</code><a class="reference internal" href="_modules/sdpt3glue/solve_neos.html#NeosError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_neos.NeosError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>Error caused by Neos server.</p>
+<p>This error is raised when an error occurs during calling Neos.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sdpt3glue.solve_neos.NeosInterface">
+<em class="property">class </em><code class="descclassname">sdpt3glue.solve_neos.</code><code class="descname">NeosInterface</code><span class="sig-paren">(</span><em>neos_host=None</em>, <em>neos_port=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_neos.html#NeosInterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_neos.NeosInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>An abstract class for connections with the remote NEOS Server for
+Optimization. NeosInterface objects communicate with the NEOS Server via
+XML-RPC. This class wraps the server&#8217;s services into a few convenient
+methods which, for the time being, are designed with the solution of AMPL
+models in mind.</p>
+<dl class="method">
+<dt id="sdpt3glue.solve_neos.NeosInterface.get_final_results">
+<code class="descname">get_final_results</code><span class="sig-paren">(</span><em>jobid</em>, <em>pwd</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_neos.html#NeosInterface.get_final_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_neos.NeosInterface.get_final_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>This funtion is &#8216;stubborn&#8217;, meaning that if it&#8217;s unable to get the
+results it will wait a few seconds and try again.  Stubborn
+functionality is intended to smooth over lost internet connections or
+computers that may fall asleep and then wake up and resume running
+code.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sdpt3glue.solve_neos.NeosInterface.track_and_return">
+<code class="descname">track_and_return</code><span class="sig-paren">(</span><em>jobid</em>, <em>pwd</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_neos.html#NeosInterface.track_and_return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_neos.NeosInterface.track_and_return" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a jobid and password for a solve already in progress,
+waits for its status to change to &#8216;Done&#8217;, and returns the message,
+jobid, and password.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="sdpt3glue.solve_neos.WEBDRIVERS">
+<code class="descclassname">sdpt3glue.solve_neos.</code><code class="descname">WEBDRIVERS</code><em class="property"> = {'Firefox': &lt;class 'selenium.webdriver.firefox.webdriver.WebDriver'&gt;, 'PhantomJS': &lt;class 'selenium.webdriver.phantomjs.webdriver.WebDriver'&gt;}</em><a class="headerlink" href="#sdpt3glue.solve_neos.WEBDRIVERS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Webdrivers to try using.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve_neos.ask_user_to_submit">
+<code class="descclassname">sdpt3glue.solve_neos.</code><code class="descname">ask_user_to_submit</code><span class="sig-paren">(</span><em>matfilepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_neos.html#ask_user_to_submit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_neos.ask_user_to_submit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instructs the user to manually submit their problem and then feed the ID
+and password back into the program.</p>
+<dl class="docutils">
+<dt>Raises:</dt>
+<dd>EOFError: When a user sends EOF.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve_neos.extract_id_pwd">
+<code class="descclassname">sdpt3glue.solve_neos.</code><code class="descname">extract_id_pwd</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_neos.html#extract_id_pwd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_neos.extract_id_pwd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a snippet of the form</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>Job#     : xxxxxxx
+Password : yyyyyyyy
+</pre></div>
+</div>
+<p>extracts and returns the strings for job ID and password</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sdpt3glue.solve_neos.neos_solve">
+<code class="descclassname">sdpt3glue.solve_neos.</code><code class="descname">neos_solve</code><span class="sig-paren">(</span><em>matfile_target</em>, <em>discard_matfile=True</em>, <em>no_prompt=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sdpt3glue/solve_neos.html#neos_solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sdpt3glue.solve_neos.neos_solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
+Returns the solve result message from NEOS.
+If write_output_to, has the side effect of writing the message to this file.</p>
+<p>If no_prompt is True, it doesn&#8217;t ask id and password manually and raise
+NeosError when some errors occur during connection to neos server.</p>
+<dl class="docutils">
+<dt>Raises:</dt>
+<dd>NeosError: When an error occurs by using Neos server.</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="quickguide.html" class="btn btn-neutral" title="Quick guide: Four ways to use sdpt3glue" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Patricia Gillett.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.9.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sdpt3glue.solve &mdash; SDPT3glue 0.9.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SDPT3glue 0.9.2 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SDPT3glue
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quickguide.html">Quick guide: Four ways to use sdpt3glue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sdpt3glue.html">sdpt3glue package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SDPT3glue</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+        <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>sdpt3glue.solve</li>
+    <li class="wy-breadcrumbs-aside">
+      
+          
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for sdpt3glue.solve</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span>
+
+<span class="kn">import</span> <span class="nn">sedumi_writer</span> <span class="k">as</span> <span class="nn">sw</span>
+<span class="kn">import</span> <span class="nn">solve_locally</span> <span class="k">as</span> <span class="nn">ls</span>
+<span class="kn">import</span> <span class="nn">result</span> <span class="k">as</span> <span class="nn">res</span>
+
+
+<span class="n">MATLAB</span> <span class="o">=</span> <span class="s1">&#39;matlab&#39;</span>
+<span class="n">OCTAVE</span> <span class="o">=</span> <span class="s1">&#39;octave&#39;</span>
+<span class="n">NEOS</span> <span class="o">=</span> <span class="s1">&#39;neos&#39;</span>
+
+
+<div class="viewcode-block" id="check_output_target"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve.check_output_target">[docs]</a><span class="k">def</span> <span class="nf">check_output_target</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">output_target</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    checks if the value of output_target is appropriate:</span>
+<span class="sd">        - output_target can&#39;t be None if mode is matlab or octave</span>
+<span class="sd">        - at least for now, output_target can&#39;t be a file that already exists</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;matlab&#39;</span><span class="p">,</span> <span class="s1">&#39;octave&#39;</span><span class="p">,</span> <span class="s1">&#39;neos&#39;</span><span class="p">],</span> \
+        <span class="s2">&quot;Please choose mode equal to either &#39;matlab&#39;, &#39;octave&#39;, or &#39;neos&#39;.&quot;</span>
+    <span class="k">assert</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;matlab&#39;</span><span class="p">,</span> <span class="s1">&#39;octave&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">output_target</span><span class="p">,</span> \
+        <span class="s2">&quot;If mode is &#39;matlab&#39; or &#39;octave&#39;, an output_target must be provided.&quot;</span>
+    <span class="k">if</span> <span class="n">output_target</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_target</span><span class="p">),</span> \
+            <span class="s2">&quot;Something already exists at output_target, we won&#39;t overwrite it.&quot;</span></div>
+
+
+<div class="viewcode-block" id="sdpt3_solve_problem"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve.sdpt3_solve_problem">[docs]</a><span class="k">def</span> <span class="nf">sdpt3_solve_problem</span><span class="p">(</span>
+        <span class="n">problem</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">matfile_target</span><span class="p">,</span>
+        <span class="n">output_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">discard_matfile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A wrapper function that takes a cvxpy problem, makes the .mat file, solves</span>
+<span class="sd">    it by NEOS or a local Matlab/SDPT3 installation, then constructs the result,</span>
+<span class="sd">    prints it, and returns it.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">matfile_target</span><span class="p">),</span> \
+        <span class="s2">&quot;Something already exists at matfile_target, we won&#39;t overwrite it.&quot;</span>
+    <span class="n">check_output_target</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">output_target</span><span class="p">)</span>
+
+    <span class="c1"># Write the problem to a .mat file in Sedumi format</span>
+    <span class="n">problem_data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="s1">&#39;CVXOPT&#39;</span><span class="p">)</span>
+    <span class="n">sw</span><span class="o">.</span><span class="n">write_cvxpy_to_mat</span><span class="p">(</span><span class="n">problem_data</span><span class="p">,</span> <span class="n">matfile_target</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sdpt3_solve_mat</span><span class="p">(</span><span class="n">matfile_target</span><span class="p">,</span>
+                           <span class="n">mode</span><span class="p">,</span>
+                           <span class="n">output_target</span><span class="o">=</span><span class="n">output_target</span><span class="p">,</span>
+                           <span class="n">discard_matfile</span><span class="o">=</span><span class="n">discard_matfile</span><span class="p">,</span>
+                           <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sdpt3_solve_mat"><a class="viewcode-back" href="../../sdpt3glue.html#sdpt3glue.solve.sdpt3_solve_mat">[docs]</a><span class="k">def</span> <span class="nf">sdpt3_solve_mat</span><span class="p">(</span>
+        <span class="n">matfile_path</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">output_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">discard_matfile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A wrapper function that takes the path of a .mat file, solves the Sedumi</span>
+<span class="sd">    problem it contains with NEOS or a local Matlab/SDPT3 installation, then</span>
+<span class="sd">    constructs the result, prints it, and returns it.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">matfile_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">matfile_path</span><span class="p">)</span>
+    <span class="n">check_output_target</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">output_target</span><span class="p">)</span>
+
+    <span class="c1"># Depending on the mode, solve the problem using a local Matlab+SDPT3</span>
+    <span class="c1"># installation or on the NEOS server</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">MATLAB</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">matlab_solve</span><span class="p">(</span><span class="n">matfile_path</span><span class="p">,</span>
+                              <span class="n">discard_matfile</span><span class="o">=</span><span class="n">discard_matfile</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">OCTAVE</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">octave_solve</span><span class="p">(</span><span class="n">matfile_path</span><span class="p">,</span>
+                              <span class="n">discard_matfile</span><span class="o">=</span><span class="n">discard_matfile</span><span class="p">,</span>
+                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">NEOS</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">solve_neos</span> <span class="k">as</span> <span class="nn">ns</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">ns</span><span class="o">.</span><span class="n">neos_solve</span><span class="p">(</span><span class="n">matfile_path</span><span class="p">,</span>
+                            <span class="n">discard_matfile</span><span class="o">=</span><span class="n">discard_matfile</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_target</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_target</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">make_result_dict</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Patricia Gillett.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.9.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
