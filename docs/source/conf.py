@@ -57,6 +57,11 @@ project = u'SDPT3glue'
 copyright = u'2016, Patricia Gillett'
 author = u'Patricia Gillett'
 
+rst_prolog = """
+:github_url: https://github.com/discardthree/pysdpt3glue
+"""
+
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
