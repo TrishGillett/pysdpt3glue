@@ -7,13 +7,21 @@ addons:
       - gcc
       - libblas-dev
       - liblapack-dev
+      - libopenblas-dev
+      - libatlas-dev
       - gfortran
-install:
-  - pip install --upgrade pip
-  - pip install -r requirements.txt
+      - python-numpy
+      - python-scipy
+      - aria2
+      - fontconfig # for PhantomJS
+before_install:
+  - aria2c -x 10 -k 1M http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.5.3.tar.gz
+  - tar -xf SuiteSparse-4.5.3.tar.gz
+  - export CVXOPT_SUITESPARSE_SRC_DIR=$(pwd)/SuiteSparse
+  - pip install numpy # To solve an install problem of CVXcanon.
 before_script:
   - mkdir travis-phantomjs
-  - wget https://assets.membergetmember.co/software/phantomjs-2.1.1-linux-x86_64.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2
+  - aria2c -x 10 -k 1M https://assets.membergetmember.co/software/phantomjs-2.1.1-linux-x86_64.tar.bz2 -d $PWD/travis-phantomjs/
   - tar -xvf $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C $PWD/travis-phantomjs
   - export PATH=$PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64/bin:$PATH
 script:
