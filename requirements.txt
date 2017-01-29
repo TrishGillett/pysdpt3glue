@@ -4,17 +4,16 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-
-CVXcanon>=0.1.0           # via cvxpy
-cvxopt>=1.1.8
-cvxpy==0.4.2              # Change to >= 0.4.4 after it’s released. 0.4.3 causes a problem if we don’t have cvxopt.
+numpy>=1.12.0
+scipy>=0.18.1
+selenium>=3.0.2
+cvxopt>=1.1.9
 dill>=0.2.5               # via multiprocess
+cvxcanon>=0.1.1           # via cvxpy
 ecos>=2.0.4               # via cvxpy
 fastcache>=1.0.2          # via cvxpy
 multiprocess>=0.70.4      # via cvxpy
-numpy>=1.11.1
-scipy>=0.17.1
 scs>=1.2.6                # via cvxpy
-selenium>=2.53.6
 six>=1.10.0               # via cvxpy
-toolz>=0.8.0              # via cvxpy
+toolz>=0.8.2              # via cvxpy
+cvxpy>=0.4.8
