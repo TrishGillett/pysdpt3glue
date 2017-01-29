@@ -292,6 +292,7 @@ class NeosInterface(object):
                     sys.exc_info()[0])
 
             else:
+                print status
                 if status == "Done":
                     break
 
