@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# pylint: disable=E1101
+# pylint: disable=import-error,no-member
 #
 # tests/unittest_neos.py
 #
@@ -51,8 +51,9 @@ class TestSimpleNEOSSolve(unittest.TestCase):
         matfile_path = os.path.join(
             os.path.dirname(__file__), 'data/hamming_7_5_6.mat')
         output_path = os.path.join(self.temp_folder, 'hamming_out.txt')
-        assert os.path.exists(matfile_path), \
-            "There's nothing at the path " + matfile_path
+        self.assertTrue(
+            os.path.exists(matfile_path),
+            "There's nothing at the path " + matfile_path)
         result = sdpt3glue.sdpt3_solve_mat(
             matfile_path, sdpt3glue.NEOS,
             output_target=output_path, discard_matfile=False)
