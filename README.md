@@ -1,6 +1,6 @@
 # sdpt3glue
-[![Code Climate](https://codeclimate.com/github/discardthree/py-sdpt3-glue/badges/gpa.svg)](https://codeclimate.com/github/discardthree/py-sdpt3-glue)
-[![Build Status](https://travis-ci.org/discardthree/pysdpt3glue.svg?branch=master)](https://travis-ci.org/discardthree/pysdpt3glue)
+[![Code Climate](https://codeclimate.com/github/TrishGillett/pysdpt3glue/badges/gpa.svg)](https://codeclimate.com/github/TrishGillett/pysdpt3glue)
+[![Build Status](https://travis-ci.org/TrishGillett/pysdpt3glue.svg?branch=master)](https://travis-ci.org/TrishGillett/pysdpt3glue)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 [![PyPi](https://img.shields.io/badge/pypi-0.9.1-brightgreen.svg)](https://pypi.python.org/pypi/sdpt3glue/)
 
