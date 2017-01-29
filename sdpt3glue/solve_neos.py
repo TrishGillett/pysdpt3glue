@@ -261,11 +261,11 @@ class NeosInterface(object):
          # Go to xmlrpc and flip on __verbose if you are debugging
          # and want to see ALL xml-rpc communication
         if not neos_host:
-            neos_host = "neos.mcs.anl.gov"
+            neos_host = "neos-server.org"
         if not neos_port:
-            neos_port = 3332
+            neos_port = 3333
 
-        neos_url = "http://{host}:{port}".format(
+        neos_url = "https://{host}:{port}".format(
             host=neos_host, port=neos_port)
         self.server = xmlrpclib.ServerProxy(neos_url)
 
@@ -292,6 +292,7 @@ class NeosInterface(object):
                     sys.exc_info()[0])
 
             else:
+                print status
                 if status == "Done":
                     break
 

@@ -1,4 +1,0 @@
-include requirements.txt
-include README.md
-include LICENSE
-include sdpt3glue/SDPT3solve.m

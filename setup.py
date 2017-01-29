@@ -12,7 +12,7 @@
 from setuptools import setup, find_packages
 
 
-def _load_requires_from_file(filepath):
+def load_requires_from_file(filepath):
     """ Read a package list from a given file path.
 
     Args:
@@ -45,10 +45,13 @@ SDPT3 can be used in a number of ways:
 - by sending the problem to the NEOS server and retrieving the answer.""",
     author="Trish Gillett-Kawamoto",
     author_email="discardthree@gmail.com",
-    url="https://github.com/discardthree/PySDPT3glue",
+    url="https://github.com/TrishGillett/PySDPT3glue",
     packages=find_packages(exclude=["tests"]),
-    package_data={'sdpt3glue': ['*.m']},
-    install_requires=_load_requires_from_file("requirements.txt"),
+    include_package_data=True,
+    setup_requires=[
+        "setuptools_scm"
+    ],
+    install_requires=load_requires_from_file("requirements.txt"),
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
