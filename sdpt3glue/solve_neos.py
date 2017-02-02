@@ -102,7 +102,7 @@ class NeosError(Exception):
 
 def neos_solve(
         matfile_target, discard_matfile=True, no_prompt=False,
-        return_id_pwd=False):
+        return_id_pwd=False, **_):
     '''
     Submits the Sedumi format .mat file to be solved on NEOS with SDPT3.
     Returns the solve result message from NEOS.

@@ -56,7 +56,7 @@ class TestSimpleNEOSSolve(unittest.TestCase):
             "There's nothing at the path " + matfile_path)
         result = sdpt3glue.sdpt3_solve_mat(
             matfile_path, sdpt3glue.NEOS,
-            output_target=output_path, discard_matfile=False)
+            output_target=output_path, discard_matfile=False, no_prompt=True)
 
         self.assertAlmostEqual(result['primal_z'], -42.6666661, places=2)
 
@@ -75,7 +75,8 @@ class TestSimpleNEOSSolve(unittest.TestCase):
 
         sdpt3glue.write_sedumi_to_mat(A, b, c, K, matfile_target)
         result = sdpt3glue.sdpt3_solve_mat(
-            matfile_target, sdpt3glue.NEOS, output_target=output_target)
+            matfile_target, sdpt3glue.NEOS,
+            output_target=output_target, no_prompt=True)
         sdpt3glue.print_summary(result)
 
 

@@ -85,7 +85,7 @@ def sdpt3_solve_mat(
     elif mode == NEOS:
         import solve_neos as ns
         msg = ns.neos_solve(matfile_path,
-                            discard_matfile=discard_matfile)
+                            discard_matfile=discard_matfile, **kwargs)
 
     if output_target:
         with open(output_target, "w") as fp:

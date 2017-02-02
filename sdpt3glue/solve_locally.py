@@ -27,7 +27,7 @@ class SubprocessCallError(Exception):
     pass
 
 
-def matlab_solve(matfile_target, discard_matfile=True):
+def matlab_solve(matfile_target, discard_matfile=True, **_):
     '''
     The .mat is loaded into matlab and the problem is solved with SDPT3.
 
@@ -54,7 +54,7 @@ def matlab_solve(matfile_target, discard_matfile=True):
     return msg
 
 
-def octave_solve(matfile_target, discard_matfile=True, cmd="octave"):
+def octave_solve(matfile_target, discard_matfile=True, cmd="octave", **_):
     '''
     The .mat is loaded into octave and the problem is solved with SDPT3.
 
