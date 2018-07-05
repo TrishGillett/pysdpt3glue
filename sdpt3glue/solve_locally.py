@@ -100,8 +100,7 @@ def _run_command_get_output(run_command):
     # Performing the Matlab solve
     try:
         proc = subprocess.Popen(
-            run_command, shell=True, stdout=subprocess.PIPE,
-            cwd=os.path.join(os.path.dirname(__file__)))
+            run_command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
     except:
